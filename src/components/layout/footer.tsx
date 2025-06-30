@@ -62,7 +62,7 @@ export function Footer() {
   };
 
   const businessHours = [
-    { day: "Monday - Friday", hours: "6:00 AM - 6:00 PM" },
+    { day: "Monday - Friday", hours: "8:00 AM - 6:00 PM" },
     { day: "Saturday", hours: "8:00 AM - 5:00 PM" },
     { day: "Sunday", hours: "Closed" },
   ];
