@@ -56,7 +56,7 @@ export function Footer() {
       { name: "Careers", href: "/careers" },
     ],
     support: [
-      { name: "Contact Us", href: "/contact" },
+      { name: "Contact Us", href: "/contact-us" },
       { name: "FAQ", href: "/faq" },
     ],
   };
