@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Car, Phone, Mail, MapPin, ArrowRight, Check } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { brandLogos } from "@/components/ui/brand-logos";
+import { Footer } from "@/components/layout/footer";
 
 interface Vehicle {
   id: string;
@@ -577,6 +578,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
