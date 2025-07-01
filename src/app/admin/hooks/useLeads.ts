@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { leadService } from "../services/leadService";
+import { leadService } from "../../../lib/services/leadService";
+import type { LeadFilters } from "../../../lib/types/lead.type";
+import { CreateLeadRequest, Lead } from "@/lib/types/lead.type";
 
 export const useLeads = () => {
-  const [leads, setLeads] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "",
-    priority: "",
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [filters, setFilters] = useState<LeadFilters>({
+    status: undefined,
+    priority: undefined,
     salesRepId: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchLeads();
@@ -27,7 +29,7 @@ export const useLeads = () => {
     }
   };
 
-  const createLead = async (leadData) => {
+  const createLead = async (leadData: CreateLeadRequest) => {
     try {
       const response = await leadService.createLead(leadData);
       setLeads((prev) => [response.data, ...prev]);
@@ -38,7 +40,7 @@ export const useLeads = () => {
     }
   };
 
-  const updateLead = async (id, updates) => {
+  const updateLead = async (id: string, updates: Partial<Lead>) => {
     try {
       const response = await leadService.updateLead(id, updates);
       setLeads((prev) =>
@@ -51,7 +53,7 @@ export const useLeads = () => {
     }
   };
 
-  const deleteLead = async (id) => {
+  const deleteLead = async (id: string) => {
     try {
       await leadService.deleteLead(id);
       setLeads((prev) => prev.filter((lead) => lead.id !== id));

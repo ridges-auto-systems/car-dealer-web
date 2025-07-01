@@ -2,23 +2,24 @@
 import React, { useState } from "react";
 import Sidebar from "./sidebar";
 import Header from "./header";
-import DashboardView from "../views/DashboardView";
-import LeadsView from "../views/LeadsView";
-import VehiclesView from "../views/VehiclesView";
-import UsersView from "../views/UsersView";
-import ReportsView from "../views/ReportsView";
-import SettingsView from "../views/SettingsView";
+//import DashboardView from "../views/DashboardView";
+import LeadsView from "../views/leadsView";
+//import VehiclesView from "../views/VehiclesView";
+//import UsersView from "../views/UsersView";
+//import ReportsView from "../views/ReportsView";
+//import SettingsView from "../views/SettingsView";
 
 const AdminLayout = () => {
   const [currentView, setCurrentView] = useState("dashboard");
-  const [userRole, setUserRole] = useState("ADMIN");
+  const [userRole, setUserRole] = useState<"ADMIN" | "SALES_REP">("ADMIN");
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case "dashboard":
-        return <DashboardView userRole={userRole} />;
       case "leads":
         return <LeadsView userRole={userRole} />;
+      /*
+       case "dashboard":
+        return <DashboardView userRole={userRole} />;
       case "vehicles":
         return <VehiclesView userRole={userRole} />;
       case "users":
@@ -29,6 +30,7 @@ const AdminLayout = () => {
         return <SettingsView userRole={userRole} />;
       default:
         return <DashboardView userRole={userRole} />;
+        */
     }
   };
 

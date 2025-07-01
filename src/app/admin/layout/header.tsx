@@ -3,8 +3,8 @@ import React from "react";
 import { Bell, ChevronDown } from "lucide-react";
 
 type HeaderProps = {
-  userRole: string;
-  setUserRole: (role: string) => void;
+  userRole: "ADMIN" | "SALES_REP";
+  setUserRole: React.Dispatch<React.SetStateAction<"ADMIN" | "SALES_REP">>;
 };
 
 const Header: React.FC<HeaderProps> = ({ userRole, setUserRole }) => {
@@ -32,7 +32,9 @@ const Header: React.FC<HeaderProps> = ({ userRole, setUserRole }) => {
               <span className="text-sm text-gray-600">Role:</span>
               <select
                 value={userRole}
-                onChange={(e) => setUserRole(e.target.value)}
+                onChange={(e) =>
+                  setUserRole(e.target.value as "ADMIN" | "SALES_REP")
+                }
                 className="border border-gray-300 rounded-lg px-3 py-1 text-sm"
               >
                 <option value="SALES_REP">Sales Rep</option>
