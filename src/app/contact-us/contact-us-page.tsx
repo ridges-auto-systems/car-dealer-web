@@ -9,15 +9,14 @@ import {
   Clock,
   MessageSquare,
   Car,
-  CreditCard,
-  RefreshCw,
   Send,
   CheckCircle,
-  Shield,
   Star,
   ArrowRight,
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
+import { useLeads } from "@/lib/store/hooks/useLeads";
+import type { CreateLeadRequest } from "@/lib/types/lead.type";
 
 interface FormData {
   firstName: string;
@@ -65,10 +64,10 @@ const contactMethods = [
     icon: Phone,
     title: "Call Us",
     description: "Speak directly with our sales team",
-    details: "(555) 123-4567",
-    action: "tel:(555)123-4567",
+    details: "+254711690560",
+    action: "tel:+254711690560",
     buttonText: "Call Now",
-    hours: "Mon-Fri: 9AM-8PM | Sat: 9AM-6PM",
+    hours: "Mon-Fri: 8AM-6PM | Sat: 8AM-5PM",
   },
   {
     icon: Mail,
@@ -77,7 +76,7 @@ const contactMethods = [
     details: "info@ridgesautomotors.com",
     action: "mailto:info@ridgesautomotors.com",
     buttonText: "Send Email",
-    hours: "We respond within 2 hours",
+    hours: "We respond within 24 hours",
   },
   {
     icon: MapPin,
@@ -117,18 +116,24 @@ const formTypes = [
 ];
 
 const businessHours = [
-  { day: "Monday - Friday", hours: "9:00 AM - 8:00 PM" },
-  { day: "Saturday", hours: "9:00 AM - 6:00 PM" },
-  { day: "Sunday", hours: "11:00 AM - 5:00 PM" },
+  { day: "Monday - Friday", hours: "8:00 AM - 6:00 PM" },
+  { day: "Saturday", hours: "8:00 AM - 5:00 PM" },
+  { day: "Sunday", hours: "Closed" },
 ];
 
 export default function ContactPage() {
   const [activeForm, setActiveForm] = useState("general");
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submissionError, setSubmissionError] = useState("");
 
+  // Use Redux for lead creation
+  const { createNewLead, isLoading, error } = useLeads();
+  /*
+  const companyPhone =
+    process.env.NEXT_PUBLIC_COMPANY_PHONE || "(555) 123-4567";
+  const companyEmail =
+    process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@ridgewaysmotors.com";
+*/
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -165,67 +170,32 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setSubmissionError("");
 
     try {
-      // Prepare the payload to match your existing API structure
-      const payload = {
+      // Prepare the payload for Redux
+      const leadData: CreateLeadRequest = {
         email: formData.email,
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
-        message: formData.message,
         vehicleId: formData.vehicleId || undefined,
-        timeline: formData.timeline,
+        message: formData.message,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timeline: formData.timeline as any,
         budgetRange: formData.budgetRange,
-        financingNeeded: formData.financingNeeded,
-        interestedInTrade: formData.interestedInTrade,
         source: formData.source,
         tradeVehicleInfo: formData.interestedInTrade
           ? formData.tradeVehicleInfo
           : undefined,
       };
 
-      // Call your existing Express API
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const response = await fetch(`${apiUrl}/leads`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      // Use Redux to create the lead
+      await createNewLead(leadData);
 
-      const result = await response.json();
-
-      if (result.success) {
-        setIsSubmitted(true);
-        setFormData(initialFormData);
-
-        // Optional: Track form submission for analytics
-        /*
-        if (typeof gtag !== "undefined") {
-          gtag("event", "form_submit", {
-            event_category: "lead_generation",
-            event_label: formData.source,
-            value: 1,
-          });
-        }
-        */
-      } else {
-        throw new Error(result.error || "Failed to submit form");
-      }
+      setIsSubmitted(true);
+      setFormData(initialFormData);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setSubmissionError(
-        error instanceof Error
-          ? error.message
-          : "Failed to submit form. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -276,176 +246,11 @@ export default function ContactPage() {
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
               >
-                <option value="morning">Morning (9AM - 12PM)</option>
+                <option value="morning">Morning (8AM - 12PM)</option>
                 <option value="afternoon">Afternoon (12PM - 5PM)</option>
                 <option value="evening">Evening (5PM - 8PM)</option>
               </select>
             </div>
-          </>
-        );
-
-      case "financing":
-        return (
-          <>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Budget Range
-                </label>
-                <select
-                  name="budgetRange"
-                  value={formData.budgetRange}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                >
-                  <option value="">Select Budget Range</option>
-                  <option value="under-1m">Under 1M KES</option>
-                  <option value="1m-2m">1M - 2M KES</option>
-                  <option value="2m-3m">2M - 3M KES</option>
-                  <option value="3m-5m">3M - 5M KES</option>
-                  <option value="over-5m">Over 5M KES</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Timeline
-                </label>
-                <select
-                  name="timeline"
-                  value={formData.timeline}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                >
-                  <option value="immediately">Immediately</option>
-                  <option value="this_week">This Week</option>
-                  <option value="this_month">This Month</option>
-                  <option value="next_month">Next Month</option>
-                  <option value="just_browsing">Just Browsing</option>
-                </select>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <label className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  name="financingNeeded"
-                  checked={formData.financingNeeded}
-                  onChange={handleInputChange}
-                  className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-600"
-                />
-                <span className="text-gray-700">
-                  I need financing assistance
-                </span>
-              </label>
-              <label className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  name="interestedInTrade"
-                  checked={formData.interestedInTrade}
-                  onChange={handleInputChange}
-                  className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-600"
-                />
-                <span className="text-gray-700">
-                  I have a vehicle to trade in
-                </span>
-              </label>
-            </div>
-          </>
-        );
-
-      case "tradein":
-        return (
-          <>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Vehicle Make
-                </label>
-                <input
-                  type="text"
-                  name="trade_make"
-                  value={formData.tradeVehicleInfo?.make || ""}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Toyota"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Vehicle Model
-                </label>
-                <input
-                  type="text"
-                  name="trade_model"
-                  value={formData.tradeVehicleInfo?.model || ""}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Camry"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Year
-                </label>
-                <input
-                  type="number"
-                  name="trade_year"
-                  value={formData.tradeVehicleInfo?.year || ""}
-                  onChange={handleInputChange}
-                  placeholder="2020"
-                  min="1990"
-                  max="2024"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mileage (KM)
-                </label>
-                <input
-                  type="number"
-                  name="trade_mileage"
-                  value={formData.tradeVehicleInfo?.mileage || ""}
-                  onChange={handleInputChange}
-                  placeholder="50,000"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Condition
-                </label>
-                <select
-                  name="trade_condition"
-                  value={formData.tradeVehicleInfo?.condition || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                >
-                  <option value="">Select Condition</option>
-                  <option value="excellent">Excellent</option>
-                  <option value="good">Good</option>
-                  <option value="fair">Fair</option>
-                  <option value="poor">Poor</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Additional Details
-              </label>
-              <textarea
-                name="trade_details"
-                value={formData.tradeVehicleInfo?.details || ""}
-                onChange={handleInputChange}
-                placeholder="Tell us more about your vehicle's condition, service history, any modifications, etc."
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              />
-            </div>
-            {/* Auto-enable trade-in flag for this form */}
-            <input type="hidden" name="interestedInTrade" value="true" />
           </>
         );
 
@@ -596,7 +401,7 @@ export default function ContactPage() {
                   </h3>
                   <p className="text-gray-600 mb-8">
                     We&apos;ve received your message and will get back to you
-                    within 2 hours during business hours.
+                    within 24 hours during business hours.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
@@ -690,19 +495,19 @@ export default function ContactPage() {
                   </div>
 
                   {/* Error Message */}
-                  {submissionError && (
+                  {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-red-700 text-sm">{submissionError}</p>
+                      <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   )}
 
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isLoading}
                     className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-bold shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    {isSubmitting ? (
+                    {isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                         Sending Message...
@@ -755,25 +560,22 @@ export default function ContactPage() {
                   Our Services
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { icon: Car, label: "Vehicle Sales" },
-                    { icon: RefreshCw, label: "Trade-In Services" },
-                    { icon: CreditCard, label: "Financing" },
-                    { icon: Shield, label: "Warranties" },
-                  ].map((service, index) => {
-                    const IconComponent = service.icon;
-                    return (
-                      <div
-                        key={index}
-                        className="bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-3"
-                      >
-                        <IconComponent className="h-5 w-5 text-red-600" />
-                        <span className="font-medium text-gray-900">
-                          {service.label}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {[{ icon: Car, label: "Vehicle Sales" }].map(
+                    (service, index) => {
+                      const IconComponent = service.icon;
+                      return (
+                        <div
+                          key={index}
+                          className="bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-3"
+                        >
+                          <IconComponent className="h-5 w-5 text-red-600" />
+                          <span className="font-medium text-gray-900">
+                            {service.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -807,7 +609,7 @@ export default function ContactPage() {
                         href="tel:(555)123-4567"
                         className="text-red-600 hover:text-red-700 font-semibold"
                       >
-                        (555) 123-4567
+                        +254 711690560
                       </a>
                     </div>
                   </div>
@@ -839,14 +641,6 @@ export default function ContactPage() {
                       <Star className="h-4 w-4 text-yellow-500" />
                       <span>Vehicle history reports</span>
                     </li>
-                    <li className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>Financing assistance</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>Trade-in evaluations</span>
-                    </li>
                   </ul>
                 </div>
               </div>
@@ -858,87 +652,6 @@ export default function ContactPage() {
                 <Car className="mr-2 h-5 w-5" />
                 Browse Our Inventory
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Google Maps Section */}
-      <section id="map-section" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Find Us on the Map
-            </h2>
-            <p className="text-xl text-gray-600">
-              Located conveniently on Kiambu Road, Nairobi. Easy parking
-              available.
-            </p>
-          </div>
-
-          {/* Google Maps Embed */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
-            <div className="aspect-w-16 aspect-h-9 h-96 lg:h-[500px]">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.819592464127!2d36.73652731459634!3d-1.2844321359302555!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f1a5b7f7f7f7f%3A0x0!2sKiambu%20Road%2C%20Nairobi!5e0!3m2!1sen!2ske!4v1234567890"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Ridges Automotors Location"
-                className="w-full h-full"
-              ></iframe>
-            </div>
-
-            {/* Map Overlay Info */}
-            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg max-w-xs">
-              <h3 className="font-bold text-gray-900 mb-2">
-                Ridges Automotors
-              </h3>
-              <p className="text-sm text-gray-600 mb-2">
-                123 Auto Plaza Drive
-                <br />
-                Kiambu Road, Nairobi
-              </p>
-              <a
-                href="https://maps.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-red-600 hover:text-red-700 font-semibold text-sm"
-              >
-                Get Directions
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </a>
-            </div>
-          </div>
-
-          {/* Directions */}
-          <div className="mt-12 grid md:grid-cols-3 gap-8 text-center">
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <Car className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <h3 className="font-bold text-gray-900 mb-2">By Car</h3>
-              <p className="text-gray-600">
-                Ample free parking available. Located just off Kiambu Road with
-                easy highway access.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <MapPin className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <h3 className="font-bold text-gray-900 mb-2">Public Transport</h3>
-              <p className="text-gray-600">
-                Accessible by matatu routes 45, 46, and 100. Short walk from
-                Kiambu Road stage.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <Clock className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <h3 className="font-bold text-gray-900 mb-2">From CBD</h3>
-              <p className="text-gray-600">
-                Just 15 minutes from Nairobi CBD. Take Uhuru Highway to Kiambu
-                Road.
-              </p>
             </div>
           </div>
         </div>
