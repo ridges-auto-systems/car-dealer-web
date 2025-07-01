@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import Link from "next/link";
 
 // Mock data for vehicles
 const mockVehicles = [
@@ -436,7 +437,7 @@ export default function VehicleInventoryPage() {
               View
             </button>
             <button className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2 px-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 font-medium shadow-lg hover:scale-105 text-sm">
-              Details
+              <Link href="/vehicle-details">Details</Link>
             </button>
           </div>
         </div>
