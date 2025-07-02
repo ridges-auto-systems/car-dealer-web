@@ -32,10 +32,6 @@ import type {
   LeadPriority,
 } from "../../../lib/types/lead.type";
 
-// ============================================================================
-// INTERFACES
-// ============================================================================
-
 interface LeadsViewProps {
   userRole: "ADMIN" | "SALES_REP";
 }
@@ -53,10 +49,6 @@ interface ViewMode {
   type: "table" | "cards";
   density: "compact" | "comfortable" | "spacious";
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
 
 const STATUS_OPTIONS: {
   value: LeadStatus | "";
@@ -115,24 +107,24 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
   // Custom hook for lead management
   const { leads, isLoading, filters, setFilters, deleteLead } = useLeads();
 
-  // Load data on component mount
-  // (No loadStats function to call)
+  // Ensure leads is always an array
+  const safeLeads: Lead[] = Array.isArray(leads) ? leads : [];
+
   // Filter leads based on search query
   const filteredLeads = useMemo<Lead[]>(() => {
-    if (!searchQuery) return leads;
-
-    return leads.filter(
+    if (!searchQuery) return safeLeads;
+    return safeLeads.filter(
       (lead: Lead) =>
         lead.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lead.phone?.includes(searchQuery) ||
         lead.vehicle?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [leads, searchQuery]);
+  }, [safeLeads, searchQuery]);
 
   // Calculate metrics
   const metrics: LeadMetrics = useMemo(() => {
-    const leadsArr = filteredLeads as Lead[];
+    const leadsArr = Array.isArray(filteredLeads) ? filteredLeads : [];
     const total = leadsArr.length;
     const newLeads = leadsArr.filter((lead) => lead.status === "NEW").length;
     const hotLeads = leadsArr.filter(
@@ -339,7 +331,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         {lead.lastContact
-          ? new Date(lead.lastContact).toLocaleDateString()
+          ? new Date(lead.lastContact).toISOString().slice(0, 10)
           : "Never"}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -490,7 +482,9 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
           </button>
         </div>
         <span className="text-xs text-gray-500">
-          {new Date(lead.createdAt).toLocaleDateString()}
+          {lead.createdAt
+            ? new Date(lead.createdAt).toISOString().slice(0, 10)
+            : ""}
         </span>
       </div>
     </div>

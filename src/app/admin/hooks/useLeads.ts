@@ -21,7 +21,7 @@ export const useLeads = () => {
     setIsLoading(true);
     try {
       const response = await leadService.getLeads(filters);
-      setLeads(response.data);
+      setLeads(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching leads:", error);
     } finally {

@@ -101,7 +101,7 @@ export function Footer() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email address"
-                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300  text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
                       required
                     />
                     <button
@@ -327,7 +327,7 @@ export function Footer() {
                 </div>
 
                 {/* Legal Links */}
-                <div className="flex items-center space-x-4  text-sm">
+                <div className="flex items-center space-x-4 text-sm">
                   <Link
                     href="/privacy"
                     className="text-gray-400 hover:text-red-400 transition-colors"
