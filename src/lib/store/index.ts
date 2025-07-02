@@ -1,11 +1,12 @@
 // lib/store/index.ts
 import { configureStore } from "@reduxjs/toolkit";
 import leadReducer from "./slices/leadSlice";
+import authReducer from "./slices/auth.slice";
 
 export const store = configureStore({
   reducer: {
     leads: leadReducer,
-    // Add other reducers here as we create them
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
