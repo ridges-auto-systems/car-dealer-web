@@ -22,7 +22,6 @@ export const metadata: Metadata = {
   keywords:
     "cars, automotive, dealership, vehicles, Kenya, Nairobi, financing, trade-in, certified pre-owned",
   authors: [{ name: "Ridges Automotors" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "Ridges Automotors - Quality Vehicles & Service",

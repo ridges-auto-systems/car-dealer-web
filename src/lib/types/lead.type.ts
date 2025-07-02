@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/types/lead.ts
 
 export type LeadStatus =
@@ -32,7 +33,23 @@ export interface TradeVehicleInfo {
   details?: string;
 }
 
+export interface Vehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  color?: string;
+  price?: number;
+  [key: string]: any; // Remove or refine as needed for stricter typing
+}
+
 export interface Lead {
+  email: string;
+  phone: string;
+  lastContact: string;
+  vehicle: any;
+  salesRep: any;
   id: string;
   customerId: string;
   salesRepId?: string;
