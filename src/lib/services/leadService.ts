@@ -1,110 +1,180 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/services/leadService.ts
-import { CreateLeadRequest, Lead, LeadFilters } from "../types/lead.type";
+import type { CreateLeadRequest, Lead, LeadFilters } from "../types/lead.type";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 class LeadService {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const token = localStorage.getItem("ridges_auth_token");
-
-    const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      ...options,
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ message: "Request failed" }));
-      throw new Error(
-        error.message || `HTTP error! status: ${response.status}`
-      );
-    }
-
-    return response.json();
-  }
-
-  // Create a new lead
-  async createLead(leadData: CreateLeadRequest) {
-    return this.request<any>("/leads", {
-      method: "POST",
-      body: JSON.stringify(leadData),
-    });
-  }
-
-  // Get all leads with filters
   async getLeads(filters: LeadFilters = {}) {
+    console.log("🔍 Fetching leads from API:", filters);
+
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
-        params.append(key, value.toString());
+      if (value !== undefined && value !== null && value !== "") {
+        params.append(key, String(value));
       }
     });
 
-    const queryString = params.toString();
-    const endpoint = `/leads${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_BASE_URL}/leads${
+      params.toString() ? "?" + params.toString() : ""
+    }`;
+    console.log("📡 API URL:", url);
 
-    return this.request<any>(endpoint);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("✅ API Response:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ API Error:", error);
+      throw error;
+    }
   }
 
-  // Get a single lead by ID
-  async getLead(id: string) {
-    return this.request<any>(`/leads/${id}`);
+  async createLead(leadData: CreateLeadRequest) {
+    console.log("📝 Creating lead:", leadData);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Lead created:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Create error:", error);
+      throw error;
+    }
   }
 
-  // Update a lead
   async updateLead(id: string, updates: Partial<Lead>) {
-    return this.request<any>(`/leads/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(updates),
-    });
+    console.log("✏️ Updating lead:", id, updates);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Lead updated:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Update error:", error);
+      throw error;
+    }
   }
 
-  // Delete a lead
   async deleteLead(id: string) {
-    return this.request<any>(`/leads/${id}`, {
-      method: "DELETE",
-    });
+    console.log("🗑️ Deleting lead:", id);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      console.log("✅ Lead deleted:", id);
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Delete error:", error);
+      throw error;
+    }
   }
 
-  // Bulk update leads
+  async getLead(id: string) {
+    console.log("🔍 Fetching single lead:", id);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads/${id}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("✅ Lead fetched:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Fetch error:", error);
+      throw error;
+    }
+  }
+
   async bulkUpdateLeads(leadIds: string[], updates: Partial<Lead>) {
-    return this.request<any>("/leads/bulk-update", {
-      method: "PATCH",
-      body: JSON.stringify({ ids: leadIds, updates }),
-    });
+    console.log("📦 Bulk updating leads:", leadIds, updates);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads/bulk`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ leadIds, updates }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Bulk update completed:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Bulk update error:", error);
+      throw error;
+    }
   }
 
-  // Update lead status
-  async updateLeadStatus(id: string, status: string) {
-    return this.updateLead(id, { status: status as any });
-  }
-
-  // Update lead priority
-  async updateLeadPriority(id: string, priority: string) {
-    return this.updateLead(id, { priority: priority as any });
-  }
-
-  // Assign lead to sales rep
-  async assignLeadToSalesRep(id: string, salesRepId: string) {
-    return this.updateLead(id, { salesRepId });
-  }
-
-  // Get lead statistics
   async getLeadStats() {
-    return this.request<any>("/leads/stats");
+    console.log("📊 Fetching lead stats");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/leads/stats`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("✅ Stats fetched:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Stats error:", error);
+      // Fallback: return basic stats
+      return {
+        success: true,
+        data: {
+          totalLeads: 0,
+          newLeads: 0,
+          hotLeads: 0,
+          convertedLeads: 0,
+          conversionRate: 0,
+        },
+      };
+    }
   }
 }
 
+// Export as named export to match existing import
 export const leadService = new LeadService();
+
+// Also export as default for flexibility
 export default leadService;

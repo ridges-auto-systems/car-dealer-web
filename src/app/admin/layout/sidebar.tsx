@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, badge: null },
-    { id: "leads", label: "Leads", icon: Users, badge: 12 },
+    { id: "leads", label: "Leads", icon: Users, badge: null },
     ...(userRole === "ADMIN"
       ? [
           { id: "vehicles", label: "Vehicles", icon: Car, badge: null },

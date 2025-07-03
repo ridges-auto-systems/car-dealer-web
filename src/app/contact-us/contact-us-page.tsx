@@ -127,7 +127,7 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Use Redux for lead creation
-  const { createNewLead, isLoading, error } = useLeads();
+  const { createLead, isLoading, error } = useLeads();
   /*
   const companyPhone =
     process.env.NEXT_PUBLIC_COMPANY_PHONE || "(555) 123-4567";
@@ -190,7 +190,7 @@ export default function ContactPage() {
       };
 
       // Use Redux to create the lead
-      await createNewLead(leadData);
+      await createLead(leadData);
 
       setIsSubmitted(true);
       setFormData(initialFormData);

@@ -45,6 +45,8 @@ export interface Vehicle {
 }
 
 export interface Lead {
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   lastContact: string;
@@ -80,8 +82,12 @@ export interface CreateLeadRequest {
   vehicleId?: string;
   message?: string;
   interestedInTrade?: boolean;
+  vehicleSearchTerm?: string;
   financingNeeded?: boolean;
   timeline?: LeadTimeline;
+  preferredContact?: string; // e.g., "email", "phone", "text"
+  bestTimeToCall?: string; // e.g., "morning", "afternoon
+
   budgetRange?: string;
   source?: string;
   tradeVehicleInfo?: TradeVehicleInfo;
@@ -93,6 +99,7 @@ export interface LeadFilters {
   status?: LeadStatus;
   priority?: LeadPriority;
   salesRepId?: string;
+  search?: string;
   source?: string;
   sortBy?: "createdAt" | "priority" | "leadScore" | "lastContactDate";
   sortOrder?: "asc" | "desc";

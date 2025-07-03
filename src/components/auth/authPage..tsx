@@ -17,8 +17,8 @@ const AuthPage: React.FC = () => {
 
       // Redirect based on user role
       if (isAdmin || isSalesRep) {
-        // Redirect to dashboard for admin/sales
-        router.push("/dashboard");
+        // Redirect to admin dashboard for admin/sales
+        router.push("/admin");
       } else {
         // Redirect to homepage for customers
         router.push("/");
