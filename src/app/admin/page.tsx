@@ -92,7 +92,7 @@ const mockSalesReps = [
 
 const AdminDashboard = () => {
   const [currentView, setCurrentView] = useState("dashboard");
-  const [userRole] = useState("ADMIN"); // ADMIN or SALES_REP
+  const [userRole] = useState<"ADMIN" | "SALES_REP">("ADMIN"); // ADMIN or SALES_REP
   //const [selectedLeads] = useState([]);
   //const [showBulkActions, setShowBulkActions] = useState(false);
 
@@ -373,7 +373,8 @@ const AdminDashboard = () => {
         {/* Main Content */}
         <div className="flex-1 p-6">
           {currentView === "dashboard" && <DashboardView />}
-          {currentView === "leads" && <LeadsView userRole={"ADMIN"} />}
+          {currentView === "leads" && <LeadsView userRole={userRole} />}
+          {/* Add more views as needed */}
         </div>
       </div>
     </div>

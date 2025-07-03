@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/services/leadService.ts
 import { CreateLeadRequest, Lead, LeadFilters } from "../types/lead.type";
 
 const API_BASE_URL =

@@ -41,7 +41,12 @@ export const fetchLeads = createAsyncThunk(
   "leads/fetchLeads",
   async (filters: LeadFilters = {}) => {
     const response = await leadService.getLeads(filters);
-    return response.data;
+
+    // Debug logging
+    console.log("API Response in thunk:", response);
+
+    // Return the full response so we can access both data and pagination
+    return response;
   }
 );
 
@@ -176,7 +181,7 @@ const leadSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch leads
+    // Fetch leads - FIXED
     builder
       .addCase(fetchLeads.pending, (state) => {
         state.isLoading = true;
@@ -184,12 +189,27 @@ const leadSlice = createSlice({
       })
       .addCase(fetchLeads.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.leads = action.payload.data || [];
-        state.pagination = action.payload.pagination || state.pagination;
+
+        // Handle the correct data structure
+        const payload = action.payload;
+        console.log("Payload in reducer:", payload);
+
+        // API returns: { success: true, data: { leads: [...], pagination: {...} } }
+        if (payload.success && payload.data) {
+          state.leads = payload.data.leads || [];
+          state.pagination = payload.data.pagination || state.pagination;
+        } else {
+          // Fallback for different response structures
+          state.leads = payload.leads || payload.data || [];
+          state.pagination = payload.pagination || state.pagination;
+        }
+
+        console.log("Leads stored in state:", state.leads);
       })
       .addCase(fetchLeads.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Failed to fetch leads";
+        console.error("fetchLeads rejected:", action.error);
       });
 
     // Create lead

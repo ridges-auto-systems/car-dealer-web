@@ -1,5 +1,5 @@
 // admin/views/LeadsView.tsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Users,
   Search,
@@ -105,7 +105,23 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
   const [showFilters, setShowFilters] = useState(false);
 
   // Custom hook for lead management
-  const { leads, isLoading, filters, setFilters, deleteLead } = useLeads();
+  const { leads, isLoading, filters, setFilters, deleteLead, refetch } =
+    useLeads();
+
+  // Load leads on component mount
+  useEffect(() => {
+    console.log("LeadsView mounted, loading leads...");
+    refetch();
+  }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("LeadsView state:", {
+      leads: leads?.length,
+      isLoading,
+      filters,
+    });
+  }, [leads, isLoading, filters]);
 
   // Ensure leads is always an array
   const safeLeads: Lead[] = Array.isArray(leads) ? leads : [];
@@ -118,7 +134,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
         lead.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lead.phone?.includes(searchQuery) ||
-        lead.vehicle?.toLowerCase().includes(searchQuery.toLowerCase())
+        lead.vehicleName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [safeLeads, searchQuery]);
 
@@ -148,9 +164,10 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
     };
   }, [filteredLeads]);
 
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
+  const handleRefresh = () => {
+    console.log("Refreshing leads...");
+    refetch();
+  };
 
   const handleSelectLead = (leadId: string) => {
     setSelectedLeads((prev) =>
@@ -180,7 +197,11 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
 
   const handleDeleteLead = async (leadId: string) => {
     if (window.confirm("Are you sure you want to delete this lead?")) {
-      await deleteLead(leadId);
+      try {
+        await deleteLead(leadId);
+      } catch (error) {
+        console.error("Error deleting lead:", error);
+      }
     }
   };
 
@@ -190,9 +211,13 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
     setSelectedLeads([]);
   };
 
-  // ============================================================================
-  // RENDER COMPONENTS
-  // ============================================================================
+  const handleFilterChange = (filterType: string, value: string) => {
+    setFilters({
+      ...filters,
+      [filterType]: value || undefined,
+      page: 1, // Reset to first page when filtering
+    });
+  };
 
   const MetricCard: React.FC<{
     title: string;
@@ -282,14 +307,22 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
             <span className="text-blue-600 font-semibold text-sm">
               {lead.customerName
-                ?.split(" ")
-                .map((n) => n[0])
-                .join("") || "UN"}
+                ? lead.customerName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                : lead.firstName && lead.lastName
+                ? `${lead.firstName[0]}${lead.lastName[0]}`
+                : "UN"}
             </span>
           </div>
           <div>
             <div className="text-sm font-medium text-gray-900">
-              {lead.customerName}
+              {lead.customerName
+                ? lead.customerName
+                : lead.firstName && lead.lastName
+                ? `${lead.firstName} ${lead.lastName}`
+                : ""}
             </div>
             <div className="text-sm text-gray-500">{lead.email}</div>
             <div className="text-sm text-gray-500">{lead.phone}</div>
@@ -300,7 +333,9 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
         <div className="flex items-center space-x-2">
           <Car className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-900">
-            {lead.vehicle || "General Inquiry"}
+            {lead.vehicleName ||
+              (typeof lead.vehicle === "object" && lead.vehicle?.model) ||
+              "General Inquiry"}
           </span>
         </div>
       </td>
@@ -315,7 +350,9 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900">
-          {lead.salesRep || "Unassigned"}
+          {lead.salesRepName ||
+            (typeof lead.salesRep === "object" && lead.salesRep?.name) ||
+            "Unassigned"}
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -330,9 +367,9 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {lead.lastContact
-          ? new Date(lead.lastContact).toISOString().slice(0, 10)
-          : "Never"}
+        {lead.createdAt
+          ? new Date(lead.createdAt).toISOString().slice(0, 10)
+          : "N/A"}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <div className="flex items-center space-x-2">
@@ -429,7 +466,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Vehicle:</span>
           <span className="text-sm font-medium text-gray-900">
-            {lead.vehicle || "General"}
+            {lead.vehicleName || "General"}
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -447,7 +484,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Sales Rep:</span>
           <span className="text-sm text-gray-900">
-            {lead.salesRep || "Unassigned"}
+            {lead.salesRepName || "Unassigned"}
           </span>
         </div>
       </div>
@@ -581,9 +618,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
             {/* Quick Filters */}
             <select
               value={filters.status || ""}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value as LeadStatus })
-              }
+              onChange={(e) => handleFilterChange("status", e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -595,12 +630,7 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
 
             <select
               value={filters.priority || ""}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  priority: e.target.value as LeadPriority,
-                })
-              }
+              onChange={(e) => handleFilterChange("priority", e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2"
             >
               {PRIORITY_OPTIONS.map((option) => (
@@ -655,139 +685,141 @@ const LeadsView: React.FC<LeadsViewProps> = ({ userRole }) => {
             </div>
 
             <button
-              // onClick={loadLeads} // Uncomment and provide a valid handler if available
+              onClick={handleRefresh}
               className="p-2 rounded-md transition-colors text-gray-600 hover:text-gray-900"
               title="Refresh"
-              disabled
+              disabled={isLoading}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
             </button>
           </div>
-
-          {/* Selected Items Actions */}
-          {selectedLeads.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <BulkActions
-                selectedCount={selectedLeads.length}
-                onBulkAction={handleBulkAction}
-                selectedIds={selectedLeads}
-              />
-            </div>
-          )}
         </div>
 
-        {/* Leads Content */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-600">Loading leads...</span>
+        {/* Selected Items Actions */}
+        {selectedLeads.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <BulkActions
+              selectedCount={selectedLeads.length}
+              onBulkAction={handleBulkAction}
+              selectedIds={selectedLeads}
+            />
           </div>
-        ) : filteredLeads.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 shadow-lg border border-gray-200 text-center">
-            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No leads found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchQuery
-                ? "Try adjusting your search criteria"
-                : "Get started by adding your first lead"}
-            </p>
-            <button
-              onClick={() => setShowLeadForm(true)}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors inline-flex items-center space-x-2"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Add First Lead</span>
-            </button>
-          </div>
-        ) : viewMode.type === "table" ? (
-          /* Table View */
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedLeads.length === filteredLeads.length &&
-                          filteredLeads.length > 0
-                        }
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-red-600 focus:ring-red-600"
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Vehicle Interest
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Priority
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sales Rep
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Lead Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredLeads.map((lead) => (
-                    <LeadTableRow key={lead.id} lead={lead} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          /* Cards View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLeads.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} />
-            ))}
-          </div>
-        )}
-
-        {/* Modals */}
-        <LeadForm
-          isOpen={showLeadForm}
-          onClose={() => {
-            setShowLeadForm(false);
-            setSelectedLead(null);
-          }}
-          mode={selectedLead ? "edit" : "create"}
-          initialData={selectedLead}
-        />
-
-        {selectedLead && (
-          <LeadDetails
-            isOpen={showLeadDetails}
-            onClose={() => {
-              setShowLeadDetails(false);
-              setSelectedLead(null);
-            }}
-            lead={selectedLead}
-            onEdit={() => {
-              setShowLeadDetails(false);
-              setShowLeadForm(true);
-            }}
-          />
         )}
       </div>
+
+      {/* Leads Content */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+          <span className="ml-2 text-gray-600">Loading leads...</span>
+        </div>
+      ) : filteredLeads.length === 0 ? (
+        <div className="bg-white rounded-xl p-12 shadow-lg border border-gray-200 text-center">
+          <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No leads found
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {searchQuery
+              ? "Try adjusting your search criteria"
+              : "Get started by adding your first lead"}
+          </p>
+          <button
+            onClick={() => setShowLeadForm(true)}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors inline-flex items-center space-x-2"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add First Lead</span>
+          </button>
+        </div>
+      ) : viewMode.type === "table" ? (
+        /* Table View */
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedLeads.length === filteredLeads.length &&
+                        filteredLeads.length > 0
+                      }
+                      onChange={handleSelectAll}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-600"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vehicle Interest
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Priority
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sales Rep
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lead Score
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredLeads.map((lead) => (
+                  <LeadTableRow key={lead.id} lead={lead} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        /* Cards View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredLeads.map((lead) => (
+            <LeadCard key={lead.id} lead={lead} />
+          ))}
+        </div>
+      )}
+
+      {/* Modals */}
+      <LeadForm
+        isOpen={showLeadForm}
+        onClose={() => {
+          setShowLeadForm(false);
+          setSelectedLead(null);
+        }}
+        mode={selectedLead ? "edit" : "create"}
+        initialData={selectedLead}
+      />
+
+      {selectedLead && (
+        <LeadDetails
+          isOpen={showLeadDetails}
+          onClose={() => {
+            setShowLeadDetails(false);
+            setSelectedLead(null);
+          }}
+          lead={selectedLead}
+          onEdit={() => {
+            setShowLeadDetails(false);
+            setShowLeadForm(true);
+          }}
+        />
+      )}
     </div>
   );
 };

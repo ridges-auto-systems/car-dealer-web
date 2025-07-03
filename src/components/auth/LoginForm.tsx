@@ -119,8 +119,7 @@ const LoginForm: React.FC<{ onSwitchToRegister: () => void }> = ({
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors
-                text-gray-900 placeholder-gray-500 bg-white
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors text-gray-900 placeholder-gray-500 bg-white
                 ${formErrors.email ? "border-red-500" : "border-gray-300"}
               `}
               placeholder="Enter your email"

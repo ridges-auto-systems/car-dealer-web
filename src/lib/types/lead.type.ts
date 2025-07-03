@@ -45,6 +45,8 @@ export interface Vehicle {
 }
 
 export interface Lead {
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   lastContact: string;
@@ -82,6 +84,9 @@ export interface CreateLeadRequest {
   interestedInTrade?: boolean;
   financingNeeded?: boolean;
   timeline?: LeadTimeline;
+  preferredContact?: string; // e.g., "email", "phone", "text"
+  bestTimeToCall?: string; // e.g., "morning", "afternoon
+
   budgetRange?: string;
   source?: string;
   tradeVehicleInfo?: TradeVehicleInfo;

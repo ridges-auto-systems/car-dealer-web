@@ -1,71 +1,80 @@
-// hooks/useAuth.ts
-
+// hooks/useAuth.ts (or wherever you have your useAuth hook)
 import { useSelector, useDispatch } from "react-redux";
-import { useCallback, useEffect } from "react";
-import { RootState, AppDispatch } from "../index";
+import { RootState, AppDispatch } from "@/lib/store/index";
 import {
   loginUser,
   registerUser,
+  fetchUserProfile,
   logoutUser,
-  getCurrentUser,
-  initializeAuth,
-} from "../action/authActions";
-import { clearError } from "../slices/auth.slice";
-import { LoginCredentials, RegisterData } from "../../types/auth.type";
+} from "@/lib/store/action/authActions";
+import { clearError } from "@/lib/store/slices/auth.slice";
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { user, token, isAuthenticated, isLoading, error, initialized } =
+    useSelector((state: RootState) => state.auth);
 
-  // Get auth state from Redux
-  const { user, token, isAuthenticated, isLoading, error } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const login = async (credentials: { email: string; password: string }) => {
+    try {
+      const result = await dispatch(loginUser(credentials));
 
-  // Login function
-  const login = useCallback(
-    async (credentials: LoginCredentials) => {
-      return dispatch(loginUser(credentials));
-    },
-    [dispatch]
-  );
+      if (loginUser.fulfilled.match(result)) {
+        return { success: true, data: result.payload };
+      } else {
+        return { success: false, error: result.payload };
+      }
+    } catch (error) {
+      return { success: false, error: "Login failed" };
+    }
+  };
 
-  // Register function
-  const register = useCallback(
-    async (userData: RegisterData) => {
-      return dispatch(registerUser(userData));
-    },
-    [dispatch]
-  );
+  const register = async (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }) => {
+    try {
+      const result = await dispatch(registerUser(userData));
 
-  // Logout function
-  const logout = useCallback(async () => {
-    return dispatch(logoutUser());
-  }, [dispatch]);
+      if (registerUser.fulfilled.match(result)) {
+        return { success: true, data: result.payload };
+      } else {
+        return { success: false, error: result.payload };
+      }
+    } catch (error) {
+      return { success: false, error: "Registration failed" };
+    }
+  };
 
-  // Get current user function
-  const fetchUser = useCallback(async () => {
-    return dispatch(getCurrentUser());
-  }, [dispatch]);
+  const logout = () => {
+    dispatch(logoutUser());
+  };
 
-  // Clear error function
-  const clearAuthError = useCallback(() => {
+  const clearAuthError = () => {
     dispatch(clearError());
-  }, [dispatch]);
+  };
 
-  // Initialize auth on app start
-  const initialize = useCallback(() => {
-    dispatch(initializeAuth());
-  }, [dispatch]);
+  const refreshProfile = async () => {
+    try {
+      const result = await dispatch(fetchUserProfile());
+      return fetchUserProfile.fulfilled.match(result);
+    } catch (error) {
+      return false;
+    }
+  };
 
-  // Auto-initialize on hook mount
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  // Helper functions
+  // Role checks
   const isAdmin = user?.role === "ADMIN";
   const isSalesRep = user?.role === "SALES_REP";
   const isCustomer = user?.role === "CUSTOMER";
+
+  // Permission checks
+  const canAccessAdminPanel = isAdmin || isSalesRep;
+  const canManageUsers = isAdmin;
+  const canManageLeads = isAdmin || isSalesRep;
+  const canManageVehicles = isAdmin || isSalesRep;
 
   return {
     // State
@@ -74,18 +83,24 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     error,
-
-    // Helper booleans
-    isAdmin,
-    isSalesRep,
-    isCustomer,
+    initialized,
 
     // Actions
     login,
     register,
     logout,
-    fetchUser,
     clearError: clearAuthError,
-    initialize,
+    refreshProfile,
+
+    // Role checks
+    isAdmin,
+    isSalesRep,
+    isCustomer,
+
+    // Permission checks
+    canAccessAdminPanel,
+    canManageUsers,
+    canManageLeads,
+    canManageVehicles,
   };
 };

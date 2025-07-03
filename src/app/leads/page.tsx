@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import LeadsPage from "./leads-page";
+import LeadsView from "../admin/views/leadsView";
 
 export const metadata: Metadata = {
   title: "Leads Management | Ridges Automotors",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <LeadsPage />;
+  return <LeadsView userRole="ADMIN" />;
 }
