@@ -35,6 +35,21 @@ const initialState: AuthState = {
   initialized: false,
 };
 
+// Helper functions for localStorage
+const saveAuthData = (token: string, user: User) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("rides_auth_token", token);
+    localStorage.setItem("rides_user_data", JSON.stringify(user));
+  }
+};
+
+const clearAuthData = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("rides_auth_token");
+    localStorage.removeItem("rides_user_data");
+  }
+};
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -49,9 +64,17 @@ const authSlice = createSlice({
       state.error = null;
       state.initialized = true;
       // Clear token from localStorage
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("authToken");
-      }
+      clearAuthData();
+    },
+    // Add this reducer to handle manual auth restoration
+    restoreAuth: (
+      state,
+      action: PayloadAction<{ token: string; user: User }>
+    ) => {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.initialized = true;
     },
   },
   extraReducers: (builder) => {
@@ -68,6 +91,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
         state.initialized = true;
+        // Save to localStorage
+        saveAuthData(action.payload.token, action.payload.user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -76,6 +101,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = action.payload as string;
         state.initialized = true;
+        clearAuthData();
       });
 
     // Fetch User Profile
@@ -91,6 +117,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
         state.initialized = true;
+        // Save to localStorage
+        saveAuthData(action.payload.token, action.payload.user);
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -99,6 +127,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = action.payload as string;
         state.initialized = true;
+        clearAuthData();
       });
 
     // Logout User
@@ -108,6 +137,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.initialized = true;
+      clearAuthData();
     });
 
     // Register User
@@ -123,6 +153,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
         state.initialized = true;
+        // Save to localStorage
+        saveAuthData(action.payload.token, action.payload.user);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -131,6 +163,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = action.payload as string;
         state.initialized = true;
+        clearAuthData();
       });
 
     // Initialize Auth
@@ -146,6 +179,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
         state.initialized = true;
+        // Save to localStorage
+        saveAuthData(action.payload.token, action.payload.user);
       })
       .addCase(initializeAuth.rejected, (state) => {
         state.isLoading = false;
@@ -154,9 +189,10 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = null;
         state.initialized = true;
+        clearAuthData();
       });
   },
 });
 
-export const { clearError, logout } = authSlice.actions;
+export const { clearError, logout, restoreAuth } = authSlice.actions;
 export default authSlice.reducer;
