@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/store/leads/actions.ts
+// lib/store/leads/actions.ts - FIXED VERSION
 import { createAction } from "@reduxjs/toolkit";
 import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   fetchLeads,
   createLead,
-  fetchLead,
   updateLead,
   deleteLead,
-  bulkUpdateLeads,
-  fetchLeadStats,
   setFilters,
   resetFilters,
   selectLead,
@@ -79,44 +76,7 @@ export const selectIsLeadSelected = (leadId: string) => (state: RootState) =>
   state.leads.selectedLeads.includes(leadId);
 
 // ============================================================================
-// ACTION CREATORS
-// ============================================================================
-
-// Quick status update actions
-export const updateLeadStatus = createAction<{ id: string; status: string }>(
-  "leads/updateStatus"
-);
-export const updateLeadPriority = createAction<{
-  id: string;
-  priority: string;
-}>("leads/updatePriority");
-export const assignLeadToSalesRep = createAction<{
-  id: string;
-  salesRepId: string;
-}>("leads/assignToSalesRep");
-
-// Bulk actions
-export const bulkUpdateStatus = createAction<{
-  leadIds: string[];
-  status: string;
-}>("leads/bulkUpdateStatus");
-export const bulkUpdatePriority = createAction<{
-  leadIds: string[];
-  priority: string;
-}>("leads/bulkUpdatePriority");
-export const bulkAssignToSalesRep = createAction<{
-  leadIds: string[];
-  salesRepId: string;
-}>("leads/bulkAssignToSalesRep");
-
-// Filter shortcuts
-export const showNewLeads = createAction("leads/showNewLeads");
-export const showHotLeads = createAction("leads/showHotLeads");
-export const showMyLeads = createAction<string>("leads/showMyLeads");
-export const showUnassignedLeads = createAction("leads/showUnassignedLeads");
-
-// ============================================================================
-// CUSTOM HOOK
+// CUSTOM HOOK - FIXED VERSION
 // ============================================================================
 
 export const useLeads = () => {
@@ -132,98 +92,218 @@ export const useLeads = () => {
   const error = useAppSelector(selectLeadError);
   const pagination = useAppSelector(selectLeadPagination);
 
-  // Actions
+  // FIXED: Actions with proper error handling
   const actions = {
     // Async actions
     fetchLeads: useCallback(
-      (filters?: LeadFilters) =>
-        dispatch(fetchLeads(filters ?? ({} as LeadFilters))),
+      async (filters?: LeadFilters) => {
+        try {
+          console.log(
+            "🔄 useLeads: Dispatching fetchLeads with filters:",
+            filters
+          );
+          const result = await dispatch(fetchLeads(filters ?? {}));
+
+          if (fetchLeads.fulfilled.match(result)) {
+            console.log("✅ useLeads: fetchLeads succeeded");
+            return result.payload;
+          } else if (fetchLeads.rejected.match(result)) {
+            console.error("❌ useLeads: fetchLeads failed:", result.payload);
+            throw new Error(result.payload as string);
+          }
+        } catch (error) {
+          console.error("❌ useLeads: fetchLeads error:", error);
+          throw error;
+        }
+      },
       [dispatch]
     ),
+
     createLead: useCallback(
-      (leadData: CreateLeadRequest) => dispatch(createLead(leadData)),
-      [dispatch]
+      async (leadData: CreateLeadRequest) => {
+        try {
+          console.log("🔄 useLeads: Creating lead:", leadData);
+          const result = await dispatch(createLead(leadData));
+
+          if (createLead.fulfilled.match(result)) {
+            console.log("✅ useLeads: createLead succeeded");
+            // Refresh leads after creating
+            await dispatch(fetchLeads(filters));
+            return result.payload;
+          } else if (createLead.rejected.match(result)) {
+            console.error("❌ useLeads: createLead failed:", result.payload);
+            throw new Error(result.payload as string);
+          }
+        } catch (error) {
+          console.error("❌ useLeads: createLead error:", error);
+          throw error;
+        }
+      },
+      [dispatch, filters]
     ),
-    fetchLead: useCallback((id: string) => dispatch(fetchLead(id)), [dispatch]),
+
     updateLead: useCallback(
-      (id: string, updates: Partial<Lead>) =>
-        dispatch(updateLead({ id, updates })),
+      async (id: string, updates: Partial<Lead>) => {
+        try {
+          console.log("🔄 useLeads: Updating lead:", id, updates);
+          const result = await dispatch(updateLead({ id, updates }));
+
+          if (updateLead.fulfilled.match(result)) {
+            console.log("✅ useLeads: updateLead succeeded");
+            return result.payload;
+          } else if (updateLead.rejected.match(result)) {
+            console.error("❌ useLeads: updateLead failed:", result.payload);
+            throw new Error(result.payload as string);
+          }
+        } catch (error) {
+          console.error("❌ useLeads: updateLead error:", error);
+          throw error;
+        }
+      },
       [dispatch]
     ),
+
     deleteLead: useCallback(
-      (id: string) => dispatch(deleteLead(id)),
+      async (id: string) => {
+        try {
+          console.log("🔄 useLeads: Deleting lead:", id);
+          const result = await dispatch(deleteLead(id));
+
+          if (deleteLead.fulfilled.match(result)) {
+            console.log("✅ useLeads: deleteLead succeeded");
+            return result.payload;
+          } else if (deleteLead.rejected.match(result)) {
+            console.error("❌ useLeads: deleteLead failed:", result.payload);
+            throw new Error(result.payload as string);
+          }
+        } catch (error) {
+          console.error("❌ useLeads: deleteLead error:", error);
+          throw error;
+        }
+      },
       [dispatch]
     ),
-    bulkUpdateLeads: useCallback(
-      (leadIds: string[], updates: Partial<Lead>) =>
-        dispatch(bulkUpdateLeads({ leadIds, updates })),
-      [dispatch]
-    ),
-    fetchStats: useCallback(() => dispatch(fetchLeadStats()), [dispatch]),
 
     // Sync actions
     setFilters: useCallback(
-      (filters: Partial<LeadFilters>) => dispatch(setFilters(filters)),
-      [dispatch]
+      (newFilters: Partial<LeadFilters>) => {
+        console.log("🔧 useLeads: Setting filters:", newFilters);
+        dispatch(setFilters(newFilters));
+        // Auto-refresh with new filters
+        setTimeout(() => {
+          dispatch(fetchLeads({ ...filters, ...newFilters }));
+        }, 100);
+      },
+      [dispatch, filters]
     ),
-    resetFilters: useCallback(() => dispatch(resetFilters()), [dispatch]),
+
+    resetFilters: useCallback(() => {
+      console.log("🔧 useLeads: Resetting filters");
+      dispatch(resetFilters());
+      // Auto-refresh with default filters
+      setTimeout(() => {
+        dispatch(fetchLeads({}));
+      }, 100);
+    }, [dispatch]),
+
     selectLead: useCallback(
       (id: string) => dispatch(selectLead(id)),
       [dispatch]
     ),
+
     deselectLead: useCallback(
       (id: string) => dispatch(deselectLead(id)),
       [dispatch]
     ),
+
     toggleSelection: useCallback(
       (id: string) => dispatch(toggleLeadSelection(id)),
       [dispatch]
     ),
+
     selectAll: useCallback(() => dispatch(selectAllLeads()), [dispatch]),
+
     clearSelection: useCallback(() => dispatch(clearSelection()), [dispatch]),
+
     setCurrentLead: useCallback(
       (lead: Lead | null) => dispatch(setCurrentLead(lead)),
       [dispatch]
     ),
+
     clearCurrentLead: useCallback(
       () => dispatch(clearCurrentLead()),
       [dispatch]
     ),
+
     updateLeadInState: useCallback(
       (id: string, updates: Partial<Lead>) =>
         dispatch(updateLeadInState({ id, updates })),
       [dispatch]
     ),
+
     clearError: useCallback(() => dispatch(clearError()), [dispatch]),
+
+    // Convenience methods
+    refetch: useCallback(
+      (customFilters?: LeadFilters) => {
+        console.log("🔄 useLeads: Manual refetch requested");
+        return dispatch(fetchLeads(customFilters || filters));
+      },
+      [dispatch, filters]
+    ),
 
     // Quick actions
     updateStatus: useCallback(
-      (id: string, status: string) => {
+      async (id: string, status: string) => {
+        // Optimistic update
         dispatch(updateLeadInState({ id, updates: { status: status as any } }));
-        dispatch(updateLead({ id, updates: { status: status as any } }));
+        try {
+          await dispatch(
+            updateLead({ id, updates: { status: status as any } })
+          );
+        } catch (error) {
+          // Revert on error
+          console.error("Failed to update status, reverting:", error);
+          // You might want to refetch to get the correct state
+          dispatch(fetchLeads(filters));
+        }
       },
-      [dispatch]
+      [dispatch, filters]
     ),
 
     updatePriority: useCallback(
-      (id: string, priority: string) => {
+      async (id: string, priority: string) => {
+        // Optimistic update
         dispatch(
           updateLeadInState({
             id,
             updates: { priority: priority as any, isHot: priority === "HOT" },
           })
         );
-        dispatch(updateLead({ id, updates: { priority: priority as any } }));
+        try {
+          await dispatch(
+            updateLead({ id, updates: { priority: priority as any } })
+          );
+        } catch (error) {
+          console.error("Failed to update priority, reverting:", error);
+          dispatch(fetchLeads(filters));
+        }
       },
-      [dispatch]
+      [dispatch, filters]
     ),
 
     assignToSalesRep: useCallback(
-      (id: string, salesRepId: string) => {
+      async (id: string, salesRepId: string) => {
+        // Optimistic update
         dispatch(updateLeadInState({ id, updates: { salesRepId } }));
-        dispatch(updateLead({ id, updates: { salesRepId } }));
+        try {
+          await dispatch(updateLead({ id, updates: { salesRepId } }));
+        } catch (error) {
+          console.error("Failed to assign sales rep, reverting:", error);
+          dispatch(fetchLeads(filters));
+        }
       },
-      [dispatch]
+      [dispatch, filters]
     ),
 
     // Filter shortcuts
@@ -231,14 +311,17 @@ export const useLeads = () => {
       () => dispatch(setFilters({ status: "NEW", page: 1 })),
       [dispatch]
     ),
+
     showHotLeads: useCallback(
       () => dispatch(setFilters({ priority: "HOT", page: 1 })),
       [dispatch]
     ),
+
     showMyLeads: useCallback(
       (salesRepId: string) => dispatch(setFilters({ salesRepId, page: 1 })),
       [dispatch]
     ),
+
     showUnassignedLeads: useCallback(
       () => dispatch(setFilters({ salesRepId: "unassigned", page: 1 })),
       [dispatch]
@@ -251,10 +334,12 @@ export const useLeads = () => {
       (leadId: string) => selectedLeads.includes(leadId),
       [selectedLeads]
     ),
+
     getLeadById: useCallback(
       (id: string) => leads.find((lead) => lead.id === id),
       [leads]
     ),
+
     getSelectedLeadsData: useCallback(
       () =>
         selectedLeads
@@ -262,8 +347,14 @@ export const useLeads = () => {
           .filter(Boolean),
       [selectedLeads, leads]
     ),
+
     hasSelectedLeads: selectedLeads.length > 0,
     selectedCount: selectedLeads.length,
+
+    // FIXED: Add loading and error states to helpers
+    isError: !!error,
+    isEmpty: !isLoading && leads.length === 0,
+    hasLeads: leads.length > 0,
   };
 
   return {
@@ -290,18 +381,12 @@ export const useLeads = () => {
 // ============================================================================
 
 export const useLeadStats = () => {
-  const dispatch = useAppDispatch();
   const stats = useAppSelector(selectLeadStats);
   const isLoading = useAppSelector(selectLeadLoading);
-
-  const refreshStats = useCallback(() => {
-    dispatch(fetchLeadStats());
-  }, [dispatch]);
 
   return {
     stats,
     isLoading,
-    refreshStats,
   };
 };
 

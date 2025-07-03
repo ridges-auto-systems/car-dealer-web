@@ -82,6 +82,7 @@ export interface CreateLeadRequest {
   vehicleId?: string;
   message?: string;
   interestedInTrade?: boolean;
+  vehicleSearchTerm?: string;
   financingNeeded?: boolean;
   timeline?: LeadTimeline;
   preferredContact?: string; // e.g., "email", "phone", "text"
@@ -98,6 +99,7 @@ export interface LeadFilters {
   status?: LeadStatus;
   priority?: LeadPriority;
   salesRepId?: string;
+  search?: string;
   source?: string;
   sortBy?: "createdAt" | "priority" | "leadScore" | "lastContactDate";
   sortOrder?: "asc" | "desc";

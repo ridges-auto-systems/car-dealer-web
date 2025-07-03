@@ -17,7 +17,7 @@ const AdminLayout = () => {
   const renderCurrentView = () => {
     switch (currentView) {
       case "leads":
-        return <LeadsView userRole={userRole} />;
+        return <LeadsView />;
       /*
        case "dashboard":
         return <DashboardView userRole={userRole} />;

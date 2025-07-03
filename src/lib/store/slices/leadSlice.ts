@@ -1,4 +1,4 @@
-// lib/store/slices/leadSlice.ts
+// lib/store/slices/leadSlice.ts - FIXED VERSION
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   LeadState,
@@ -36,70 +36,168 @@ const initialState: LeadState = {
   },
 };
 
-// Async thunks
+// FIXED: Async thunk with proper error handling and response parsing
 export const fetchLeads = createAsyncThunk(
   "leads/fetchLeads",
-  async (filters: LeadFilters = {}) => {
-    const response = await leadService.getLeads(filters);
+  async (filters: LeadFilters = {}, { rejectWithValue }) => {
+    try {
+      console.log("🔄 Redux: Starting fetchLeads with filters:", filters);
 
-    // Debug logging
-    console.log("API Response in thunk:", response);
+      // Use direct API call instead of leadService to match your working hook
+      const API_BASE_URL = "http://localhost:5000/api";
+      const params = new URLSearchParams();
 
-    // Return the full response so we can access both data and pagination
-    return response;
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          params.append(key, String(value));
+        }
+      });
+
+      const url = `${API_BASE_URL}/leads${
+        params.toString() ? "?" + params.toString() : ""
+      }`;
+
+      console.log("📡 Redux: API URL:", url);
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("🔍 Redux: Full API response received:", data);
+
+      // The API returns: { success: true, data: { leads: [...], pagination: {...} } }
+      if (data && data.success && data.data) {
+        console.log("✅ Redux: Valid response format detected");
+        console.log(
+          "📊 Redux: Leads data:",
+          data.data.leads?.length || 0,
+          "leads found"
+        );
+
+        // Return the data structure that the fulfilled case expects
+        return {
+          leads: data.data.leads || [],
+          pagination: data.data.pagination || {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          },
+        };
+      } else {
+        console.error("❌ Redux: Invalid API response format:", data);
+        throw new Error("Invalid response format from API");
+      }
+    } catch (error: any) {
+      console.error("❌ Redux: Leads fetch failed:", error);
+      return rejectWithValue(error.message || "Failed to fetch leads");
+    }
   }
 );
 
+// FIXED: Other thunks to use direct API calls
 export const createLead = createAsyncThunk(
   "leads/createLead",
-  async (leadData: CreateLeadRequest) => {
-    const response = await leadService.createLead(leadData);
-    return response.data;
-  }
-);
+  async (leadData: CreateLeadRequest, { rejectWithValue }) => {
+    try {
+      console.log("🔄 Redux: Creating lead:", leadData);
 
-export const fetchLead = createAsyncThunk(
-  "leads/fetchLead",
-  async (id: string) => {
-    const response = await leadService.getLead(id);
-    return response.data;
+      const response = await fetch("http://localhost:5000/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leadData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create lead: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Redux: Lead creation successful:", result);
+      return result;
+    } catch (error: any) {
+      console.error("❌ Redux: Lead creation failed:", error);
+      return rejectWithValue(error.message || "Failed to create lead");
+    }
   }
 );
 
 export const updateLead = createAsyncThunk(
   "leads/updateLead",
-  async ({ id, updates }: { id: string; updates: Partial<Lead> }) => {
-    const response = await leadService.updateLead(id, updates);
-    return response.data;
+  async (
+    { id, updates }: { id: string; updates: Partial<Lead> },
+    { rejectWithValue }
+  ) => {
+    try {
+      console.log("🔄 Redux: Updating lead:", id, updates);
+
+      const response = await fetch(`http://localhost:5000/api/leads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update lead: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Redux: Lead update successful:", result);
+      return result;
+    } catch (error: any) {
+      console.error("❌ Redux: Lead update failed:", error);
+      return rejectWithValue(error.message || "Failed to update lead");
+    }
   }
 );
 
 export const deleteLead = createAsyncThunk(
   "leads/deleteLead",
-  async (id: string) => {
-    await leadService.deleteLead(id);
-    return id;
+  async (id: string, { rejectWithValue }) => {
+    try {
+      console.log("🔄 Redux: Deleting lead:", id);
+
+      const response = await fetch(`http://localhost:5000/api/leads/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete lead: ${response.status}`);
+      }
+
+      console.log("✅ Redux: Lead deletion successful:", id);
+      return id;
+    } catch (error: any) {
+      console.error("❌ Redux: Lead deletion failed:", error);
+      return rejectWithValue(error.message || "Failed to delete lead");
+    }
   }
 );
 
-export const bulkUpdateLeads = createAsyncThunk(
-  "leads/bulkUpdateLeads",
-  async ({
-    leadIds,
-    updates,
-  }: {
-    leadIds: string[];
-    updates: Partial<Lead>;
-  }) => {
-    const response = await leadService.bulkUpdateLeads(leadIds, updates);
-    return { leadIds, updates, data: response.data };
-  }
-);
+// FIXED: Calculate stats from leads
+const calculateStatsFromLeads = (leads: Lead[]) => {
+  const totalLeads = leads.length;
+  const newLeads = leads.filter((lead) => lead.status === "NEW").length;
+  const hotLeads = leads.filter(
+    (lead) => lead.priority === "HOT" || lead.isHot
+  ).length;
+  const convertedLeads = leads.filter(
+    (lead) => lead.status === "CLOSED_WON"
+  ).length;
+  const conversionRate =
+    totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
 
-export const fetchLeadStats = createAsyncThunk("leads/fetchStats", async () => {
-  const response = await leadService.getLeadStats();
-  return response.data;
-});
+  return {
+    totalLeads,
+    newLeads,
+    hotLeads,
+    convertedLeads,
+    conversionRate,
+  };
+};
 
 // Slice
 const leadSlice = createSlice({
@@ -108,10 +206,12 @@ const leadSlice = createSlice({
   reducers: {
     // Filters
     setFilters: (state, action: PayloadAction<Partial<LeadFilters>>) => {
+      console.log("🔧 Redux: Setting filters:", action.payload);
       state.filters = { ...state.filters, ...action.payload };
     },
 
     resetFilters: (state) => {
+      console.log("🔧 Redux: Resetting filters");
       state.filters = {
         page: 1,
         limit: 20,
@@ -169,6 +269,8 @@ const leadSlice = createSlice({
       const leadIndex = state.leads.findIndex((lead) => lead.id === id);
       if (leadIndex !== -1) {
         state.leads[leadIndex] = { ...state.leads[leadIndex], ...updates };
+        // Recalculate stats
+        state.stats = calculateStatsFromLeads(state.leads);
       }
       if (state.currentLead?.id === id) {
         state.currentLead = { ...state.currentLead, ...updates };
@@ -181,127 +283,162 @@ const leadSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch leads - FIXED
+    // FIXED: Fetch leads
     builder
       .addCase(fetchLeads.pending, (state) => {
+        console.log("🔄 Redux: Fetch leads pending");
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchLeads.fulfilled, (state, action) => {
+        console.log("✅ Redux: Fetch leads fulfilled - START");
+        console.log(
+          "📦 Redux: Action payload:",
+          JSON.stringify(action.payload, null, 2)
+        );
+
         state.isLoading = false;
+        state.error = null;
 
-        // Handle the correct data structure
-        const payload = action.payload;
-        console.log("Payload in reducer:", payload);
+        try {
+          // FIXED: action.payload should be { leads: [...], pagination: {...} }
+          if (
+            action.payload &&
+            action.payload.leads &&
+            Array.isArray(action.payload.leads)
+          ) {
+            console.log(
+              "🎯 Redux: Setting leads array with",
+              action.payload.leads.length,
+              "leads"
+            );
 
-        // API returns: { success: true, data: { leads: [...], pagination: {...} } }
-        if (payload.success && payload.data) {
-          state.leads = payload.data.leads || [];
-          state.pagination = payload.data.pagination || state.pagination;
-        } else {
-          // Fallback for different response structures
-          state.leads = payload.leads || payload.data || [];
-          state.pagination = payload.pagination || state.pagination;
+            state.leads = action.payload.leads;
+
+            // Update pagination if present
+            if (action.payload.pagination) {
+              state.pagination = action.payload.pagination;
+              console.log(
+                "📄 Redux: Updated pagination:",
+                action.payload.pagination
+              );
+            }
+
+            // FIXED: Calculate stats from the actual leads data
+            state.stats = calculateStatsFromLeads(action.payload.leads);
+
+            console.log("✅ Redux: State updated successfully");
+            console.log(
+              "📊 Redux: Final leads count in state:",
+              state.leads.length
+            );
+            console.log("📊 Redux: Stats:", state.stats);
+
+            // Log first lead for verification
+            if (state.leads.length > 0) {
+              console.log("🔍 Redux: First lead:", state.leads[0]);
+            }
+          } else {
+            console.warn(
+              "⚠️ Redux: Unexpected payload format:",
+              action.payload
+            );
+            state.leads = [];
+            state.error = "Invalid data format received from API";
+          }
+        } catch (error) {
+          console.error("❌ Redux: Error processing fulfilled action:", error);
+          state.leads = [];
+          state.error = "Error processing lead data";
         }
 
-        console.log("Leads stored in state:", state.leads);
+        console.log("✅ Redux: Fetch leads fulfilled - END");
       })
       .addCase(fetchLeads.rejected, (state, action) => {
+        console.error("❌ Redux: Fetch leads rejected:", action.payload);
         state.isLoading = false;
-        state.error = action.error.message || "Failed to fetch leads";
-        console.error("fetchLeads rejected:", action.error);
+        state.error = (action.payload as string) || "Failed to fetch leads";
+        state.leads = [];
       });
 
-    // Create lead
+    // FIXED: Create lead
     builder
       .addCase(createLead.pending, (state) => {
+        console.log("🔄 Redux: Create lead pending");
         state.isLoading = true;
         state.error = null;
       })
       .addCase(createLead.fulfilled, (state, action) => {
+        console.log("✅ Redux: Create lead fulfilled:", action.payload);
         state.isLoading = false;
-        if (action.payload.lead) {
-          state.leads.unshift(action.payload.lead);
-          state.stats.totalLeads += 1;
-          state.stats.newLeads += 1;
+
+        // Handle the API response structure
+        if (
+          action.payload.success &&
+          action.payload.data &&
+          action.payload.data.lead
+        ) {
+          const newLead = action.payload.data.lead;
+          state.leads.unshift(newLead);
+          state.stats = calculateStatsFromLeads(state.leads);
+          console.log("📊 Redux: Added new lead:", newLead.id);
         }
       })
       .addCase(createLead.rejected, (state, action) => {
+        console.error("❌ Redux: Create lead rejected:", action.payload);
         state.isLoading = false;
-        state.error = action.error.message || "Failed to create lead";
+        state.error = (action.payload as string) || "Failed to create lead";
       });
 
-    // Fetch single lead
+    // FIXED: Update lead
     builder
-      .addCase(fetchLead.pending, (state) => {
-        state.isLoading = true;
+      .addCase(updateLead.pending, (state) => {
+        console.log("🔄 Redux: Update lead pending");
         state.error = null;
       })
-      .addCase(fetchLead.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentLead = action.payload;
-      })
-      .addCase(fetchLead.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || "Failed to fetch lead";
-      });
-
-    // Update lead
-    builder
       .addCase(updateLead.fulfilled, (state, action) => {
-        const updatedLead = action.payload;
-        const leadIndex = state.leads.findIndex(
-          (lead) => lead.id === updatedLead.id
-        );
-        if (leadIndex !== -1) {
-          state.leads[leadIndex] = updatedLead;
-        }
-        if (state.currentLead?.id === updatedLead.id) {
-          state.currentLead = updatedLead;
+        console.log("✅ Redux: Update lead fulfilled:", action.payload);
+
+        if (action.payload.success && action.payload.data) {
+          const updatedLead = action.payload.data;
+          const leadIndex = state.leads.findIndex(
+            (lead) => lead.id === updatedLead.id
+          );
+          if (leadIndex !== -1) {
+            state.leads[leadIndex] = updatedLead;
+            state.stats = calculateStatsFromLeads(state.leads);
+          }
+          if (state.currentLead?.id === updatedLead.id) {
+            state.currentLead = updatedLead;
+          }
+          console.log("📊 Redux: Updated lead in state:", updatedLead.id);
         }
       })
       .addCase(updateLead.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to update lead";
+        console.error("❌ Redux: Update lead rejected:", action.payload);
+        state.error = (action.payload as string) || "Failed to update lead";
       });
 
-    // Delete lead
+    // FIXED: Delete lead
     builder
+      .addCase(deleteLead.pending, (state) => {
+        console.log("🔄 Redux: Delete lead pending");
+        state.error = null;
+      })
       .addCase(deleteLead.fulfilled, (state, action) => {
+        console.log("✅ Redux: Delete lead fulfilled:", action.payload);
         const leadId = action.payload;
         state.leads = state.leads.filter((lead) => lead.id !== leadId);
         state.selectedLeads = state.selectedLeads.filter((id) => id !== leadId);
         if (state.currentLead?.id === leadId) {
           state.currentLead = null;
         }
-        state.stats.totalLeads = Math.max(0, state.stats.totalLeads - 1);
+        state.stats = calculateStatsFromLeads(state.leads);
+        console.log("📊 Redux: Removed lead from state:", leadId);
       })
       .addCase(deleteLead.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to delete lead";
-      });
-
-    // Bulk update leads
-    builder
-      .addCase(bulkUpdateLeads.fulfilled, (state, action) => {
-        const { leadIds, updates } = action.payload;
-        leadIds.forEach((leadId) => {
-          const leadIndex = state.leads.findIndex((lead) => lead.id === leadId);
-          if (leadIndex !== -1) {
-            state.leads[leadIndex] = { ...state.leads[leadIndex], ...updates };
-          }
-        });
-        state.selectedLeads = [];
-      })
-      .addCase(bulkUpdateLeads.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to update leads";
-      });
-
-    // Fetch stats
-    builder
-      .addCase(fetchLeadStats.fulfilled, (state, action) => {
-        state.stats = action.payload;
-      })
-      .addCase(fetchLeadStats.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to fetch stats";
+        console.error("❌ Redux: Delete lead rejected:", action.payload);
+        state.error = (action.payload as string) || "Failed to delete lead";
       });
   },
 });
