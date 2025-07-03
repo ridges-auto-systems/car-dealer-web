@@ -78,3 +78,23 @@ export interface VehicleHistory {
   userEmail?: string;
   createdAt: string;
 }
+export interface VehicleFilters {
+  make?: string;
+  model?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  priceFrom?: number;
+  priceTo?: number;
+  mileageFrom?: number;
+  mileageTo?: number;
+  condition?: VehicleCondition[];
+  status?: VehicleStatus[];
+  location?: string;
+  isFeatured?: boolean;
+  isOnline?: boolean;
+  searchQuery?: string;
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}

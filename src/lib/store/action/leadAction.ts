@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/store/leads/actions.ts - FIXED VERSION
 import { createAction } from "@reduxjs/toolkit";
 import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
