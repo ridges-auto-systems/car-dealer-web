@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Vehicle } from "../../types/lead.type";
+import { Vehicle } from "../../types/vehicle.type";
 
 export interface VehicleFilters {
   page?: number;
@@ -56,9 +56,12 @@ export const fetchVehicles = createAsyncThunk(
           params.append(key, String(value));
         }
       });
-      const url = `${API_BASE_URL}/vehicles${params.toString() ? "?" + params.toString() : ""}`;
+      const url = `${API_BASE_URL}/vehicles${
+        params.toString() ? "?" + params.toString() : ""
+      }`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok)
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const data = await response.json();
       if (data && data.success && data.data) {
         return {
@@ -88,7 +91,8 @@ export const createVehicle = createAsyncThunk(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(vehicleData),
       });
-      if (!response.ok) throw new Error(`Failed to create vehicle: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Failed to create vehicle: ${response.status}`);
       const result = await response.json();
       return result;
     } catch (error: any) {
@@ -109,7 +113,8 @@ export const updateVehicle = createAsyncThunk(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
-      if (!response.ok) throw new Error(`Failed to update vehicle: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Failed to update vehicle: ${response.status}`);
       const result = await response.json();
       return result;
     } catch (error: any) {
@@ -125,7 +130,8 @@ export const deleteVehicle = createAsyncThunk(
       const response = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error(`Failed to delete vehicle: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Failed to delete vehicle: ${response.status}`);
       return id;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to delete vehicle");
@@ -138,7 +144,10 @@ const vehicleSlice = createSlice({
   name: "vehicles",
   initialState,
   reducers: {
-    setVehicleFilters: (state, action: PayloadAction<Partial<VehicleFilters>>) => {
+    setVehicleFilters: (
+      state,
+      action: PayloadAction<Partial<VehicleFilters>>
+    ) => {
       state.filters = { ...state.filters, ...action.payload };
     },
     resetVehicleFilters: (state) => {
@@ -163,7 +172,9 @@ const vehicleSlice = createSlice({
     toggleVehicleSelection: (state, action: PayloadAction<string>) => {
       const vehicleId = action.payload;
       if (state.selectedVehicles.includes(vehicleId)) {
-        state.selectedVehicles = state.selectedVehicles.filter((id) => id !== vehicleId);
+        state.selectedVehicles = state.selectedVehicles.filter(
+          (id) => id !== vehicleId
+        );
       } else {
         state.selectedVehicles.push(vehicleId);
       }
@@ -250,7 +261,9 @@ const vehicleSlice = createSlice({
       .addCase(updateVehicle.fulfilled, (state, action) => {
         if (action.payload.success && action.payload.data) {
           const updatedVehicle = action.payload.data;
-          const idx = state.vehicles.findIndex((v) => v.id === updatedVehicle.id);
+          const idx = state.vehicles.findIndex(
+            (v) => v.id === updatedVehicle.id
+          );
           if (idx !== -1) {
             state.vehicles[idx] = updatedVehicle;
           }
@@ -268,7 +281,9 @@ const vehicleSlice = createSlice({
       .addCase(deleteVehicle.fulfilled, (state, action) => {
         const vehicleId = action.payload;
         state.vehicles = state.vehicles.filter((v) => v.id !== vehicleId);
-        state.selectedVehicles = state.selectedVehicles.filter((id) => id !== vehicleId);
+        state.selectedVehicles = state.selectedVehicles.filter(
+          (id) => id !== vehicleId
+        );
         if (state.currentVehicle?.id === vehicleId) {
           state.currentVehicle = null;
         }

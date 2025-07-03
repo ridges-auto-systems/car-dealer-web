@@ -1,10 +1,15 @@
-// lib/services/leadService.ts
-import type { VehicleFilters } from "../types/vehicle.type";
+// lib/services/vehicle.service.ts - Complete version with all methods
+import type { VehicleFilters, Vehicle } from "../types/vehicle.type";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
 class VehicleService {
-  async getVehicles(filters: VehicleFilters = {}) {
+  async getVehicles(
+    filters: VehicleFilters = {
+      page: 0,
+      limit: 0,
+    }
+  ) {
     console.log("🔍 Fetching vehicles from API:", filters);
 
     const params = new URLSearchParams();
@@ -33,80 +38,6 @@ class VehicleService {
     }
   }
 
-  /*
-  async createLead(leadData: CreateLeadRequest) {
-    console.log("📝 Creating lead:", leadData);
-    ``;
-    try {
-      const response = await fetch(`${API_BASE_URL}/leads`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(leadData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Lead created:", data);
-      return data;
-    } catch (error) {
-      console.error("❌ Create error:", error);
-      throw error;
-    }
-  }
-*/
-  /*
-  async updateLead(id: string, updates: Partial<Lead>) {
-    console.log("✏️ Updating lead:", id, updates);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Lead updated:", data);
-      return data;
-    } catch (error) {
-      console.error("❌ Update error:", error);
-      throw error;
-    }
-  }
-    */
-  /*
-  async deleteLead(id: string) {
-    console.log("🗑️ Deleting lead:", id);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/leads/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      console.log("✅ Lead deleted:", id);
-      return { success: true };
-    } catch (error) {
-      console.error("❌ Delete error:", error);
-      throw error;
-    }
-  }
-    */
-
   async getVehicle(id: string) {
     console.log("🔍 Fetching single vehicle:", id);
 
@@ -120,6 +51,88 @@ class VehicleService {
       return data;
     } catch (error) {
       console.error("❌ Fetch error:", error);
+      throw error;
+    }
+  }
+
+  // ADD MISSING METHODS:
+
+  async createVehicle(vehicleData: Partial<Vehicle>) {
+    console.log("📝 Creating vehicle:", vehicleData);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/vehicles`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(vehicleData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("✅ Vehicle created:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Create error:", error);
+      throw error;
+    }
+  }
+
+  async updateVehicle(id: string, updates: Partial<Vehicle>) {
+    console.log("✏️ Updating vehicle:", id, updates);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("✅ Vehicle updated:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Update error:", error);
+      throw error;
+    }
+  }
+
+  async deleteVehicle(id: string) {
+    console.log("🗑️ Deleting vehicle:", id);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("✅ Vehicle deleted:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Delete error:", error);
       throw error;
     }
   }

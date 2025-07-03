@@ -17,7 +17,7 @@ import {
   updateVehicleInState,
   clearVehicleError,
 } from "../slices/vehicle.slice";
-import { Vehicle } from "../../types/lead.type";
+import { Vehicle } from "../../types/vehicle.type";
 import type { RootState } from "../index";
 
 // ============================================================================

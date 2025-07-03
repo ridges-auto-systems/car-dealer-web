@@ -1,3 +1,4 @@
+// src/app/admin/views/vehicleView.tsx
 import React, { useState, useMemo } from "react";
 import {
   Car,
@@ -13,10 +14,11 @@ import {
   RefreshCw,
   Menu,
 } from "lucide-react";
-import { useVehicles } from "../../../lib/store/action/vehicleActions";
-//import VehicleForm from "../components/vehicles/VehicleForm";
-//import BulkActions from "../components/vehicles/BulkActions";
-import type { Vehicle } from "../../../lib/types/lead.type";
+
+import { useVehicles } from "@/lib/store/hooks/useVehicles";
+import VehicleForm from "../components/vehicles/VehicleForm";
+
+import type { Vehicle } from "../../../lib/types/vehicle.type";
 
 interface VehicleViewProps {
   userRole?: "ADMIN" | "SALES_REP";
@@ -34,9 +36,18 @@ const SORT_OPTIONS = [
   { value: "make:desc", label: "Make Z-A" },
   { value: "model:asc", label: "Model A-Z" },
   { value: "model:desc", label: "Model Z-A" },
+  { value: "year:desc", label: "Year (Newest)" },
+  { value: "year:asc", label: "Year (Oldest)" },
+  { value: "price:desc", label: "Price (High to Low)" },
+  { value: "price:asc", label: "Price (Low to High)" },
+  { value: "mileage:asc", label: "Mileage (Low to High)" },
+  { value: "mileage:desc", label: "Mileage (High to Low)" },
 ];
 
 const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
+  // Add debugging console logs
+  console.log("🚗 VehicleView component mounted");
+
   const {
     vehicles,
     isLoading,
@@ -47,7 +58,20 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
     setFilters,
     isEmpty,
     isError,
+    createVehicle,
+    updateVehicle,
+    deleteVehicle,
   } = useVehicles();
+
+  // Debug logs
+  console.log("🔍 VehicleView Debug:", {
+    vehicles: vehicles,
+    vehicleCount: vehicles?.length || 0,
+    isLoading,
+    error,
+    isEmpty,
+    isError,
+  });
 
   const [showVehicleForm, setShowVehicleForm] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -64,19 +88,29 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
 
   // Filter vehicles based on search query
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  console.log("🚗 Safe vehicles array:", safeVehicles);
+
   const filteredVehicles = useMemo(() => {
     if (!searchQuery) return safeVehicles;
     return safeVehicles.filter((vehicle: Vehicle) => {
       const make = (vehicle.make || "").toLowerCase();
       const model = (vehicle.model || "").toLowerCase();
       const year = String(vehicle.year || "");
+      const vin = (vehicle.vin || "").toLowerCase();
+      const stockNumber = (vehicle.stockNumber || "").toLowerCase();
+      const searchLower = searchQuery.toLowerCase();
+
       return (
-        make.includes(searchQuery.toLowerCase()) ||
-        model.includes(searchQuery.toLowerCase()) ||
-        year.includes(searchQuery)
+        make.includes(searchLower) ||
+        model.includes(searchLower) ||
+        year.includes(searchQuery) ||
+        vin.includes(searchLower) ||
+        stockNumber.includes(searchLower)
       );
     });
   }, [safeVehicles, searchQuery]);
+
+  console.log("🔍 Filtered vehicles:", filteredVehicles);
 
   // ============================================================================
   // HANDLERS
@@ -110,18 +144,12 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
 
   const handleDeleteVehicle = async (vehicleId: string) => {
     if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      // TODO: Implement deleteVehicle action
-      // await deleteVehicle(vehicleId);
+      try {
+        await deleteVehicle(vehicleId);
+      } catch (error) {
+        console.error("Failed to delete vehicle:", error);
+      }
     }
-  };
-
-  const handleBulkAction = (
-    action: string,
-    vehicleIds: string[],
-    additionalData?: any
-  ) => {
-    // TODO: Implement bulk actions for vehicles
-    setSelectedVehicles([]);
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -137,13 +165,45 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
   };
 
   const handleRefresh = () => {
+    console.log("🔄 Manual refresh triggered");
     fetchVehicles().catch((err: any) => {
       console.error("Refresh failed:", err);
     });
   };
 
-  const handleVehicleFormSubmit = () => {
-    handleRefresh();
+  const handleAddVehicle = () => {
+    console.log("🚗 Add Vehicle button clicked");
+    setSelectedVehicle(null); // Clear any selected vehicle
+    setShowVehicleForm(true); // Show the form
+  };
+
+  const handleVehicleFormSubmit = async (vehicleData: Partial<Vehicle>) => {
+    console.log("📝 Vehicle form submitted:", vehicleData);
+    try {
+      if (selectedVehicle) {
+        // Editing existing vehicle
+        await updateVehicle(selectedVehicle.id, vehicleData);
+        console.log("✅ Vehicle updated successfully");
+      } else {
+        // Creating new vehicle
+        await createVehicle(vehicleData);
+        console.log("✅ Vehicle created successfully");
+      }
+
+      // Close form and refresh data
+      setShowVehicleForm(false);
+      setSelectedVehicle(null);
+
+      // Refresh the vehicle list
+      handleRefresh();
+    } catch (error) {
+      console.error("❌ Error saving vehicle:", error);
+      // Don't close the form if there's an error
+    }
+  };
+
+  const handleVehicleFormClose = () => {
+    console.log("❌ Vehicle form closed");
     setShowVehicleForm(false);
     setSelectedVehicle(null);
   };
@@ -169,16 +229,54 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium text-gray-900">
-              {vehicle.make} {vehicle.model}
+              {vehicle.year} {vehicle.make} {vehicle.model}
             </div>
-            <div className="text-sm text-gray-500">{vehicle.year}</div>
+            <div className="text-sm text-gray-500">
+              {vehicle.trim || "Base Model"}
+            </div>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">{vehicle.color || "-"}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{vehicle.mileage || "-"}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">
+        {vehicle.vin || "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+        {vehicle.stockNumber || "-"}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        {vehicle.price ? `$${vehicle.price}` : "-"}
+        <span
+          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+            vehicle.condition === "NEW"
+              ? "bg-green-100 text-green-800"
+              : vehicle.condition === "CERTIFIED_PRE_OWNED"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {vehicle.condition?.replace("_", " ") || "USED"}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {vehicle.mileageFormatted || vehicle.mileage?.toLocaleString() || "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+        {vehicle.priceFormatted ||
+          (vehicle.price ? `$${vehicle.price.toLocaleString()}` : "-")}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span
+          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+            vehicle.status === "AVAILABLE"
+              ? "bg-green-100 text-green-800"
+              : vehicle.status === "PENDING"
+              ? "bg-yellow-100 text-yellow-800"
+              : vehicle.status === "SOLD"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {vehicle.status || "AVAILABLE"}
+        </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         {vehicle.createdAt
@@ -221,63 +319,16 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
     </tr>
   );
 
-  const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-center space-x-3 mb-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <Car className="h-6 w-6 text-blue-600" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold text-gray-900 truncate">
-            {vehicle.make} {vehicle.model}
-          </h3>
-          <p className="text-sm text-gray-500 truncate">{vehicle.year}</p>
-        </div>
-        <input
-          type="checkbox"
-          checked={selectedVehicles.includes(vehicle.id)}
-          onChange={() => handleSelectVehicle(vehicle.id)}
-          className="rounded border-gray-300 text-red-600 focus:ring-red-600"
-        />
-      </div>
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Color:</span>
-          <span className="text-sm font-medium text-gray-900">
-            {vehicle.color || "-"}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Mileage:</span>
-          <span className="text-sm font-medium">{vehicle.mileage || "-"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Price:</span>
-          <span className="text-sm font-medium">
-            {vehicle.price ? `$${vehicle.price}` : "-"}
-          </span>
-        </div>
-      </div>
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-        <button
-          onClick={() => handleViewVehicle(vehicle)}
-          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          title="View Details"
-        >
-          <Eye className="h-4 w-4" />
-        </button>
-        <span className="text-xs text-gray-500">
-          {vehicle.createdAt
-            ? new Date(vehicle.createdAt).toLocaleDateString()
-            : ""}
-        </span>
-      </div>
-    </div>
-  );
-
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
+
+  console.log("🎨 Rendering VehicleView with:", {
+    isError,
+    isLoading,
+    vehicleCount: filteredVehicles.length,
+    error,
+  });
 
   if (isError) {
     return (
@@ -315,6 +366,12 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                 ? "Manage all vehicles in inventory"
                 : "View your assigned vehicles"}
             </p>
+            {filteredVehicles.length > 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Showing {filteredVehicles.length} of {pagination.total || 0}{" "}
+                vehicles
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex gap-3">
@@ -328,7 +385,7 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
               </button>
             </div>
             <button
-              onClick={() => setShowVehicleForm(true)}
+              onClick={handleAddVehicle}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
             >
               <Plus className="h-4 w-4" />
@@ -347,7 +404,7 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search vehicles..."
+                    placeholder="Search by make, model, VIN, stock #..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -419,7 +476,6 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                 </div>
               </div>
             </div>
-            {/* Selected Items Actions */}
           </div>
         </div>
 
@@ -442,15 +498,21 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                 ? "Try adjusting your search criteria"
                 : "Get started by adding your first vehicle"}
             </p>
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <strong>Debug Info:</strong>
+              <br />
+              API Response:{" "}
+              {JSON.stringify({ vehicles: vehicles?.length, isLoading, error })}
+            </div>
             <button
-              onClick={() => setShowVehicleForm(true)}
+              onClick={() => console.log("Add first vehicle clicked")}
               className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors inline-flex items-center space-x-2"
             >
               <Plus className="h-5 w-5" />
               <span>Add First Vehicle</span>
             </button>
           </div>
-        ) : viewMode.type === "table" ? (
+        ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -471,7 +533,13 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                       Vehicle
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Color
+                      VIN
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stock #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Condition
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Mileage
@@ -480,7 +548,10 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                       Price
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Added
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -494,44 +565,16 @@ const VehicleView: React.FC<VehicleViewProps> = ({ userRole = "ADMIN" }) => {
                 </tbody>
               </table>
             </div>
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="text-sm text-gray-700">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                  {Math.min(
-                    pagination.page * pagination.limit,
-                    pagination.total
-                  )}{" "}
-                  of {pagination.total} results
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setFilters({ page: pagination.page - 1 })}
-                    disabled={pagination.page <= 1}
-                    className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setFilters({ page: pagination.page + 1 })}
-                    disabled={pagination.page >= pagination.totalPages}
-                    className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredVehicles.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
-            ))}
           </div>
         )}
       </div>
+      <VehicleForm
+        isOpen={showVehicleForm}
+        onClose={handleVehicleFormClose}
+        onSubmit={handleVehicleFormSubmit}
+        vehicle={selectedVehicle}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

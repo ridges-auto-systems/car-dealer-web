@@ -16,7 +16,7 @@ export type VehicleStatus =
 
 export interface Vehicle {
   id: string;
-  vin: string;
+  vin?: string;
   stockNumber?: string;
   make: string;
   model: string;
