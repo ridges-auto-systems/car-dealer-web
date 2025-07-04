@@ -1,5 +1,6 @@
-// lib/hooks/useUsers.ts - FIXED VERSION
-import { useCallback, useMemo } from "react";
+// lib/hooks/useUsers.ts - COMPLETE VERSION with useUserForm
+
+import { useCallback, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   fetchUsers,
@@ -38,11 +39,15 @@ export const selectUserError = (state: any) => state.users.error;
 export const selectUserPagination = (state: any) => state.users.pagination;
 
 // ============================================================================
-// MAIN HOOK - FIXED: All hooks called at top level
+// MAIN USEUSERS HOOK - SAFE VERSION
 // ============================================================================
 
 export const useUsers = () => {
   const dispatch = useAppDispatch();
+
+  // 🔥 PREVENT MULTIPLE CALLS
+  const fetchingRef = useRef(false);
+  const lastFiltersRef = useRef<string>("");
 
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - NO CONDITIONALS
   const users = useAppSelector(selectUsers);
@@ -57,7 +62,6 @@ export const useUsers = () => {
 
   // MEMOIZED COMPUTED VALUES
   const computed = useMemo(() => {
-    // Safely access users array
     const safeUsers = Array.isArray(users) ? users : [];
 
     return {
@@ -67,8 +71,6 @@ export const useUsers = () => {
       totalUsers: pagination?.totalRecords || 0,
       hasNextPage: pagination?.hasNext || false,
       hasPrevPage: pagination?.hasPrev || false,
-
-      // Get specific users
       activeUsers: safeUsers.filter((user) => user.isActive),
       inactiveUsers: safeUsers.filter((user) => !user.isActive),
       customers: safeUsers.filter((user) => user.role === "CUSTOMER"),
@@ -81,26 +83,67 @@ export const useUsers = () => {
       ),
       admins: safeUsers.filter((user) => user.role === "ADMIN"),
       managers: safeUsers.filter((user) => user.role === "MANAGER"),
-
-      // Selected users data
       selectedUsersData: selectedUsers
         .map((id: any) => safeUsers.find((user) => user.id === id))
         .filter(Boolean) as User[],
     };
   }, [users, selectedUsers, pagination]);
 
+  // 🔥 SAFE FETCH FUNCTION - PREVENTS INFINITE LOOPS
+  const safeFetchUsers = useCallback(
+    async (filters?: UserFilters) => {
+      const filtersString = JSON.stringify(filters || {});
+
+      // Prevent multiple calls with same filters
+      if (fetchingRef.current && lastFiltersRef.current === filtersString) {
+        console.log(
+          "⚠️ fetchUsers: Already fetching with same filters, skipping"
+        );
+        return;
+      }
+
+      // Prevent too frequent calls
+      if (fetchingRef.current) {
+        console.log("⚠️ fetchUsers: Already fetching, waiting...");
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (fetchingRef.current) {
+          console.log("⚠️ fetchUsers: Still fetching after wait, aborting");
+          return;
+        }
+      }
+
+      fetchingRef.current = true;
+      lastFiltersRef.current = filtersString;
+
+      console.log("🔄 fetchUsers: Starting fetch with filters:", filters);
+
+      try {
+        const result = await dispatch(fetchUsers(filters || {}));
+        console.log("✅ fetchUsers: Success");
+        return result;
+      } catch (error) {
+        console.error("❌ fetchUsers: Error:", error);
+        throw error;
+      } finally {
+        fetchingRef.current = false;
+      }
+    },
+    [dispatch]
+  );
+
   // MEMOIZED ACTIONS
   const actions = useMemo(
     () => ({
-      // Fetch users
-      loadUsers: (filters?: UserFilters) =>
-        dispatch(fetchUsers(filters ?? ({} as UserFilters))),
+      // 🔥 SAFE FETCH FUNCTIONS
+      fetchUsers: safeFetchUsers,
+      loadUsers: safeFetchUsers,
 
       // Create user
       createUser: (userData: CreateUserData) => dispatch(createUser(userData)),
 
       // Get single user
       loadUser: (id: string) => dispatch(fetchUser(id)),
+      fetchUser: (id: string) => dispatch(fetchUser(id)),
 
       // Update user
       updateUser: (id: string, updates: UpdateUserData) =>
@@ -110,40 +153,25 @@ export const useUsers = () => {
       deleteUser: (id: string) => dispatch(deleteUser(id)),
       removeUser: (id: string) => dispatch(deleteUser(id)),
 
-      // Additional actions expected by the component
-      toggleUserStatus: (id: string) => {
-        const user =
-          computed.activeUsers.find((u) => u.id === id) ||
-          computed.inactiveUsers.find((u) => u.id === id);
-        if (user) {
-          return dispatch(
-            updateUser({ id, updates: { isActive: !user.isActive } })
-          );
-        }
-        return Promise.resolve();
-      },
-
-      bulkUpdateUsers: (userIds: string[], updates: UpdateUserData) => {
-        return Promise.all(
-          userIds.map((id) => dispatch(updateUser({ id, updates })))
-        );
-      },
-
-      exportUsers: () => {
-        // Placeholder for export functionality
-        console.log("Export users functionality not implemented yet");
-      },
-
       // Stats
       loadStats: () => dispatch(fetchUserStats()),
+      fetchStats: () => dispatch(fetchUserStats()),
 
       // Sales reps
       loadSalesReps: () => dispatch(fetchSalesReps()),
+      fetchSalesReps: () => dispatch(fetchSalesReps()),
 
-      // Filters
-      setFilters: (newFilters: Partial<UserFilters>) =>
-        dispatch(setFilters(newFilters)),
-      resetFilters: () => dispatch(resetFilters()),
+      // Filters - 🔥 DON'T AUTO-FETCH ON FILTER CHANGE
+      setFilters: (newFilters: Partial<UserFilters>) => {
+        console.log("🔧 setFilters called:", newFilters);
+        dispatch(setFilters(newFilters));
+        // DON'T automatically fetch - let component decide when to fetch
+      },
+      resetFilters: () => {
+        console.log("🔧 resetFilters called");
+        dispatch(resetFilters());
+        // DON'T automatically fetch - let component decide when to fetch
+      },
 
       // Selection
       toggleSelection: (userId: string) =>
@@ -155,64 +183,11 @@ export const useUsers = () => {
 
       // Error handling
       clearError: () => dispatch(clearError()),
+
+      // Manual refresh
+      refetch: safeFetchUsers,
     }),
-    [dispatch, computed.activeUsers, computed.inactiveUsers]
-  );
-
-  // MEMOIZED QUICK ACTIONS
-  const activateUser = useCallback(
-    async (id: string) => {
-      return dispatch(updateUser({ id, updates: { isActive: true } }));
-    },
-    [dispatch]
-  );
-
-  const deactivateUser = useCallback(
-    async (id: string) => {
-      return dispatch(updateUser({ id, updates: { isActive: false } }));
-    },
-    [dispatch]
-  );
-
-  const changeUserRole = useCallback(
-    async (id: string, role: any) => {
-      return dispatch(updateUser({ id, updates: { role } }));
-    },
-    [dispatch]
-  );
-
-  const updatePreferredContact = useCallback(
-    async (id: string, preferredContact: string) => {
-      return dispatch(updateUser({ id, updates: { preferredContact } }));
-    },
-    [dispatch]
-  );
-
-  const quickActions = useMemo(
-    () => ({
-      activateUser,
-      deactivateUser,
-      changeUserRole,
-      updatePreferredContact,
-    }),
-    [activateUser, deactivateUser, changeUserRole, updatePreferredContact]
-  );
-
-  // MEMOIZED FILTER SHORTCUTS
-  const filterShortcuts = useMemo(
-    () => ({
-      showActive: () => dispatch(setFilters({ isActive: true, page: 1 })),
-      showInactive: () => dispatch(setFilters({ isActive: false, page: 1 })),
-      showCustomers: () => dispatch(setFilters({ role: "CUSTOMER", page: 1 })),
-      showSalesReps: () => dispatch(setFilters({ role: "SALES_REP", page: 1 })),
-      showAdmins: () => dispatch(setFilters({ role: "ADMIN", page: 1 })),
-      showManagers: () => dispatch(setFilters({ role: "MANAGER", page: 1 })),
-      searchUsers: (search: string) =>
-        dispatch(setFilters({ search, page: 1 })),
-      sortBy: (sortBy: any, sortOrder: "asc" | "desc" = "desc") =>
-        dispatch(setFilters({ sortBy, sortOrder, page: 1 })),
-    }),
-    [dispatch]
+    [dispatch, safeFetchUsers]
   );
 
   // MEMOIZED HELPERS
@@ -243,7 +218,15 @@ export const useUsers = () => {
     [users, selectedUsers, computed.activeUsers, computed.inactiveUsers]
   );
 
-  // RETURN ALL PROPERTIES - HOOKS MUST ALWAYS BE CALLED IN SAME ORDER
+  // 🔥 DEBUGGING INFO
+  console.log("🔍 useUsers state:", {
+    usersCount: users?.length || 0,
+    isLoading,
+    error: error || "none",
+    isFetching: fetchingRef.current,
+  });
+
+  // RETURN ALL PROPERTIES
   return {
     // State
     users: Array.isArray(users) ? users : [],
@@ -260,24 +243,21 @@ export const useUsers = () => {
       hasPrev: false,
     },
 
-    // Computed values - spread them so component can access directly
+    // Computed values
     ...computed,
 
-    // Actions - spread them so component can access directly
+    // Actions
     ...actions,
-
-    // Quick actions
-    ...quickActions,
-
-    // Filter shortcuts
-    ...filterShortcuts,
 
     // Helpers
     ...helpers,
   };
 };
 
-// Keep other hooks unchanged but ensure they don't have conditional calls
+// ============================================================================
+// 🔥 MISSING HOOK: useUserForm - For form-specific operations
+// ============================================================================
+
 export const useUserForm = () => {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.users);
@@ -285,9 +265,27 @@ export const useUserForm = () => {
   const createUserHandler = useCallback(
     async (userData: CreateUserData): Promise<any> => {
       try {
-        const result = await dispatch(createUser(userData));
-        return result.payload;
-      } catch (err) {
+        console.log("🔄 useUserForm: Creating user with data:", userData);
+        const result = (await dispatch(
+          createUser(userData)
+        )) as unknown as ReturnType<typeof createUser>;
+
+        if (createUser.fulfilled.match(result)) {
+          console.log("✅ useUserForm: User created successfully");
+          return result.payload;
+        } else if (createUser.rejected.match(result)) {
+          console.error(
+            "❌ useUserForm: Create failed:",
+            (result as any).payload
+          );
+          throw new Error(
+            ((result as any).payload as string) || "Failed to create user"
+          );
+        }
+
+        return (result as any).payload;
+      } catch (err: any) {
+        console.error("❌ useUserForm: Create error:", err);
         throw err;
       }
     },
@@ -297,9 +295,22 @@ export const useUserForm = () => {
   const updateUserHandler = useCallback(
     async (id: string, updates: UpdateUserData): Promise<any> => {
       try {
+        console.log("🔄 useUserForm: Updating user:", id, updates);
         const result = await dispatch(updateUser({ id, updates }));
-        return result.payload;
-      } catch (err) {
+
+        if (updateUser.fulfilled.match(result)) {
+          console.log("✅ useUserForm: User updated successfully");
+          return result.payload;
+        } else if (updateUser.rejected.match(result)) {
+          console.error("❌ useUserForm: Update failed:", result.payload);
+          throw new Error(
+            (result.payload as string) || "Failed to update user"
+          );
+        }
+
+        return result;
+      } catch (err: any) {
+        console.error("❌ useUserForm: Update error:", err);
         throw err;
       }
     },
@@ -313,6 +324,10 @@ export const useUserForm = () => {
     error,
   };
 };
+
+// ============================================================================
+// ADDITIONAL HOOKS - For specific use cases
+// ============================================================================
 
 export const useUser = (userId?: string) => {
   const dispatch = useAppDispatch();

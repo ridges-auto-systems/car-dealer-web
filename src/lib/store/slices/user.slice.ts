@@ -16,13 +16,107 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 // ============================================================================
-// ASYNC THUNKS
+// HELPER FUNCTIONS
 // ============================================================================
 
+// Function to get and validate token
+// Replace the getValidToken function in your user.slice.ts with this:
+
+// Replace the getValidToken function in your user.slice.ts with this:
+
+const getValidToken = (): string | null => {
+  try {
+    // 🔥 FIXED: Check the correct token key from your localStorage
+    const tokenKeys = [
+      "rides_auth_token",
+      "authToken",
+      "access_token",
+      "token",
+    ];
+
+    for (const key of tokenKeys) {
+      const token = localStorage.getItem(key);
+      if (token && token.trim()) {
+        console.log(`✅ Using token from key: ${key}`);
+
+        // Validate JWT format
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          try {
+            const payload = JSON.parse(atob(parts[1]));
+            const isExpired = payload.exp * 1000 < Date.now();
+
+            if (isExpired) {
+              console.warn(`❌ Token from ${key} is expired`);
+              localStorage.removeItem(key);
+              continue; // Try next key
+            }
+
+            console.log(`✅ Valid token found in ${key}`);
+            return token.trim();
+          } catch (e) {
+            console.warn(`❌ Invalid token format in ${key}`);
+            localStorage.removeItem(key);
+            continue;
+          }
+        } else {
+          console.warn(
+            `❌ Invalid JWT format in ${key} (${parts.length} parts instead of 3)`
+          );
+          localStorage.removeItem(key);
+          continue;
+        }
+      }
+    }
+
+    console.warn("❌ No valid token found in localStorage");
+    return null;
+  } catch (error) {
+    console.error("❌ Error getting token:", error);
+    return null;
+  }
+};
+// Function to handle API responses with better error handling
+const handleApiResponse = async (response: Response) => {
+  if (response.status === 401) {
+    // Token is invalid, clear it
+    localStorage.removeItem("token");
+    window.location.href = "/login"; // Redirect to login
+    throw new Error("Authentication failed. Please log in again.");
+  }
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
+// ============================================================================
+// ASYNC THUNKS WITH BETTER ERROR HANDLING
+// ============================================================================
+let currentFetchUsersPromise: Promise<any> | null = null;
 // Fetch users
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
-  async (filters: Partial<UserFilters> = {}) => {
+  async (filters: Partial<UserFilters> = {}, { rejectWithValue }) => {
+    // 🔥 PREVENT MULTIPLE SIMULTANEOUS REQUESTS
+    if (currentFetchUsersPromise) {
+      console.log(
+        "⚠️ fetchUsers already in progress, returning existing promise"
+      );
+      return await currentFetchUsersPromise;
+    }
+
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
+
     const params = new URLSearchParams();
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -31,28 +125,42 @@ export const fetchUsers = createAsyncThunk(
       }
     });
 
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_BASE_URL}/users?${params}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    // 🔥 CREATE AND STORE THE PROMISE
+    currentFetchUsersPromise = (async () => {
+      try {
+        console.log("🔄 Making fetchUsers API call...");
+        const response = await fetch(`${API_BASE_URL}/users?${params}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch users");
-    }
+        const data = await handleApiResponse(response);
+        console.log("✅ fetchUsers successful");
+        return data.data;
+      } catch (error) {
+        console.error("❌ fetchUsers failed:", error);
+        throw error;
+      } finally {
+        // 🔥 CLEAR THE PROMISE WHEN DONE
+        currentFetchUsersPromise = null;
+      }
+    })();
 
-    const data = await response.json();
-    return data.data;
+    return await currentFetchUsersPromise;
   }
 );
-
 // Fetch single user
 export const fetchUser = createAsyncThunk(
   "users/fetchUser",
   async (userId: string) => {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
+
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -60,11 +168,7 @@ export const fetchUser = createAsyncThunk(
       },
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch user");
-    }
-
-    const data = await response.json();
+    const data = await handleApiResponse(response);
     return data.data;
   }
 );
@@ -73,7 +177,11 @@ export const fetchUser = createAsyncThunk(
 export const createUser = createAsyncThunk(
   "users/createUser",
   async (userData: CreateUserData) => {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
 
     // Map CreateUserData to CreateUserRequest for API
     const apiData: CreateUserRequest = {
@@ -95,12 +203,7 @@ export const createUser = createAsyncThunk(
       body: JSON.stringify(apiData),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to create user");
-    }
-
-    const data = await response.json();
+    const data = await handleApiResponse(response);
     return data.data;
   }
 );
@@ -109,7 +212,11 @@ export const createUser = createAsyncThunk(
 export const updateUser = createAsyncThunk(
   "users/updateUser",
   async ({ id, updates }: { id: string; updates: UpdateUserData }) => {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
 
     // Map UpdateUserData to UpdateUserRequest for API
     const apiData: UpdateUserRequest = {
@@ -131,12 +238,7 @@ export const updateUser = createAsyncThunk(
       body: JSON.stringify(apiData),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to update user");
-    }
-
-    const data = await response.json();
+    const data = await handleApiResponse(response);
     return data.data;
   }
 );
@@ -145,7 +247,12 @@ export const updateUser = createAsyncThunk(
 export const deleteUser = createAsyncThunk(
   "users/deleteUser",
   async (userId: string) => {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
+
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: "DELETE",
       headers: {
@@ -154,18 +261,19 @@ export const deleteUser = createAsyncThunk(
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete user");
-    }
-
+    await handleApiResponse(response);
     return userId;
   }
 );
 
 // Fetch user stats
 export const fetchUserStats = createAsyncThunk("users/fetchStats", async () => {
-  const token = localStorage.getItem("token");
+  const token = getValidToken();
+
+  if (!token) {
+    throw new Error("No valid authentication token found");
+  }
+
   const response = await fetch(`${API_BASE_URL}/users/stats`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -173,11 +281,7 @@ export const fetchUserStats = createAsyncThunk("users/fetchStats", async () => {
     },
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch user stats");
-  }
-
-  const data = await response.json();
+  const data = await handleApiResponse(response);
   return data.data;
 });
 
@@ -185,7 +289,12 @@ export const fetchUserStats = createAsyncThunk("users/fetchStats", async () => {
 export const fetchSalesReps = createAsyncThunk(
   "users/fetchSalesReps",
   async () => {
-    const token = localStorage.getItem("token");
+    const token = getValidToken();
+
+    if (!token) {
+      throw new Error("No valid authentication token found");
+    }
+
     const response = await fetch(`${API_BASE_URL}/users/role/sales-reps`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -193,11 +302,7 @@ export const fetchSalesReps = createAsyncThunk(
       },
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch sales representatives");
-    }
-
-    const data = await response.json();
+    const data = await handleApiResponse(response);
     return data.data;
   }
 );

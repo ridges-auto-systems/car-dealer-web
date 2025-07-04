@@ -12,7 +12,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { useLeads } from "../../hooks/useLeads";
+import { useLeads } from "@/lib/store/hooks/useLeads";
 import type {
   CreateLeadRequest,
   LeadTimeline,

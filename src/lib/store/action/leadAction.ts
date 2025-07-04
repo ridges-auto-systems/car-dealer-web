@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createAction } from "@reduxjs/toolkit";
 import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
@@ -91,7 +90,6 @@ export const useLeads = () => {
   const error = useAppSelector(selectLeadError);
   const pagination = useAppSelector(selectLeadPagination);
 
-  // FIXED: Actions with proper error handling
   const actions = {
     // Async actions
     fetchLeads: useCallback(

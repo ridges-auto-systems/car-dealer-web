@@ -21,7 +21,7 @@ const AdminLayout = () => {
       case "vehicles":
         return <VehiclesView />;
       case "users":
-        return <UsersView userRole={userRole} />;
+        return <UsersView />;
       /*
        case "dashboard":
         return <DashboardView userRole={userRole} />;
