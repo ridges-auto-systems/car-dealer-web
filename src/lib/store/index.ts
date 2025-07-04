@@ -3,12 +3,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import leadReducer from "./slices/leadSlice";
 import authReducer from "./slices/auth.slice";
 import vehicleReducer from "./slices/vehicle.slice";
+import userReducer from "./slices/user.slice";
 
 export const store = configureStore({
   reducer: {
     leads: leadReducer,
     auth: authReducer,
     vehicles: vehicleReducer,
+    users: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

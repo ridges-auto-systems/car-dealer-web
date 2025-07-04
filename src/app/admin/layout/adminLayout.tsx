@@ -6,7 +6,7 @@ import Header from "./header";
 import LeadsView from "../views/leadsView";
 import { ReduxProvider } from "@/lib/store/provider";
 import VehiclesView from "../views/vehicleView";
-//import UsersView from "../views/UsersView";
+import UsersView from "../views/userViews";
 //import ReportsView from "../views/ReportsView";
 //import SettingsView from "../views/SettingsView";
 
@@ -20,12 +20,13 @@ const AdminLayout = () => {
         return <LeadsView />;
       case "vehicles":
         return <VehiclesView />;
+      case "users":
+        return <UsersView userRole={userRole} />;
       /*
        case "dashboard":
         return <DashboardView userRole={userRole} />;
       
-      case "users":
-        return <UsersView userRole={userRole} />;
+      
       case "reports":
         return <ReportsView userRole={userRole} />;
       case "settings":

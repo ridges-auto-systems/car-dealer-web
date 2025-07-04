@@ -196,13 +196,6 @@ const VehicleForm: React.FC<VehicleFormProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // UPDATED VIN VALIDATION - Only validate if VIN is provided
-    if (formData.vin?.trim()) {
-      if (formData.vin.length !== 17) {
-        newErrors.vin = "VIN must be exactly 17 characters if provided";
-      }
-    }
-
     if (!formData.make?.trim()) {
       newErrors.make = "Make is required";
     }
@@ -239,8 +232,15 @@ const VehicleForm: React.FC<VehicleFormProps> = ({
     }
 
     try {
-      console.log("🚗 Submitting vehicle form:", formData);
-      await onSubmit(formData);
+      // Remove empty string fields (especially vin)
+      const cleanedData = { ...formData };
+      if (!cleanedData.vin || cleanedData.vin.trim() === "") {
+        delete cleanedData.vin;
+      }
+      // You can do this for other optional fields if needed
+
+      console.log("🚗 Submitting vehicle form:", cleanedData);
+      await onSubmit(cleanedData);
       onClose();
     } catch (error) {
       console.error("Error submitting vehicle:", error);
