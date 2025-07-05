@@ -44,7 +44,6 @@ export function Footer() {
   const navigationLinks = {
     inventory: [
       { name: "All Vehicles", href: "/inventory" },
-      { name: "New Arrivals", href: "/inventory?sort=newest" },
       { name: "Under KES 100000", href: "/inventory?maxPrice=100000" },
       { name: "Certified Pre-Owned", href: "/inventory?condition=certified" },
       { name: "Luxury Vehicles", href: "/inventory?category=luxury" },

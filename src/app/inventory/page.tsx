@@ -832,7 +832,7 @@ export default function VehicleInventoryPage() {
             </div>
           </div>
           <Link
-            href="/contact"
+            href="/contact-us"
             className="inline-block mt-8 bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold"
           >
             Contact Us Today

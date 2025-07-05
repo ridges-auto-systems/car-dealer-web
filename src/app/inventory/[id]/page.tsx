@@ -1,4 +1,4 @@
-// app/inventory/[id]/page.tsx - Vehicle Details with Backend Integration
+// app/inventory/[id]/page.tsx - FIXED VERSION (no infinite re-render)
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -67,8 +67,8 @@ export default function VehicleDetailPage() {
   const router = useRouter();
   const vehicleId = params.id as string;
 
-  // Backend state
-  const { getVehicleById } = useVehicles();
+  // Backend state - ONLY get the vehicles array and getVehicleById function
+  const { vehicles, getVehicleById } = useVehicles();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +97,7 @@ export default function VehicleDetailPage() {
   const [loanTerm, setLoanTerm] = useState(60);
   const [interestRate, setInterestRate] = useState(4.9);
 
-  // Fetch vehicle data
+  // 🔧 FIXED: Fetch vehicle data - removed getVehicleById from dependency array
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
@@ -146,7 +146,22 @@ export default function VehicleDetailPage() {
     if (vehicleId) {
       fetchVehicle();
     }
-  }, [vehicleId, getVehicleById]);
+  }, [vehicleId]); // 🔧 FIXED: Only vehicleId in dependency array
+
+  // 🔧 ALTERNATIVE: Check for vehicle in cache whenever vehicles array changes
+  useEffect(() => {
+    if (vehicleId && vehicles.length > 0 && !vehicle) {
+      const cachedVehicle = vehicles.find((v) => v.id === vehicleId);
+      if (cachedVehicle) {
+        setVehicle(cachedVehicle);
+        setIsLoading(false);
+        setContactData((prev) => ({
+          ...prev,
+          message: `I'm interested in the ${cachedVehicle.year} ${cachedVehicle.make} ${cachedVehicle.model} (Stock #${cachedVehicle.stockNumber})`,
+        }));
+      }
+    }
+  }, [vehicles, vehicleId, vehicle]);
 
   // Loading state
   if (isLoading) {
@@ -454,7 +469,7 @@ export default function VehicleDetailPage() {
           <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
             <Gauge className="h-8 w-8 text-red-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
-              {vehicle.mileage.toLocaleString()}
+              {vehicle.mileage}
             </div>
             <div className="text-sm text-gray-600">Miles</div>
           </div>

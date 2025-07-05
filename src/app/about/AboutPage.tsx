@@ -19,7 +19,6 @@ import {
   Car,
   Handshake,
 } from "lucide-react";
-import { Header } from "@/components/layout/header";
 
 const teamMembers = [
   {
@@ -159,9 +158,6 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <Header />
-
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-20 lg:py-32 overflow-hidden">
         {/* Background Pattern */}
@@ -264,7 +260,7 @@ export default function AboutPage() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                   <Link
-                    href="/contact"
+                    href="/contact-us"
                     className="inline-flex items-center border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-300 font-semibold"
                   >
                     Contact Us
@@ -618,7 +614,7 @@ export default function AboutPage() {
               Browse Our Inventory
             </Link>
             <Link
-              href="/contact"
+              href="/contact-us"
               className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all duration-300 font-bold"
             >
               Schedule a Visit

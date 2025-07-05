@@ -604,7 +604,7 @@ export default function CartCheckoutPage() {
                   Continue Shopping
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg hover:bg-red-50 transition-colors font-semibold"
                 >
                   Contact Us
