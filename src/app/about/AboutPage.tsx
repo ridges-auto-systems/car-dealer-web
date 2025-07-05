@@ -19,7 +19,6 @@ import {
   Car,
   Handshake,
 } from "lucide-react";
-import { Header } from "@/components/layout/header";
 
 const teamMembers = [
   {
@@ -159,9 +158,6 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <Header />
-
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-20 lg:py-32 overflow-hidden">
         {/* Background Pattern */}
