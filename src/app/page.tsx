@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Car, Phone, Mail, MapPin, ArrowRight, Check } from "lucide-react";
-import { Header } from "@/components/layout/header";
 import { brandLogos } from "@/components/ui/brand-logos";
-import { Footer } from "@/components/layout/footer";
 
 interface Vehicle {
   id: string;
@@ -97,59 +95,11 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="inline-flex items-center justify-center border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold text-lg backdrop-blur-sm"
                 >
                   Learn More
                 </Link>
-              </div>
-            </div>
-
-            {/*  Car Display */}
-            <div className="lg:block">
-              <div className="relative">
-                <div className="relative w-full h-96 bg-gradient-to-br from-gray-800/50 to-black/50 rounded-2xl flex items-center justify-center overflow-hidden backdrop-blur-sm border border-gray-700">
-                  {/* Car SVG Illustration */}
-                  <div className="relative">
-                    <svg
-                      width="300"
-                      height="150"
-                      viewBox="0 0 300 150"
-                      className="text-red-500 drop-shadow-2xl"
-                    >
-                      {/* Car Body */}
-                      <path
-                        d="M50 100 L75 80 L100 75 L200 75 L225 80 L250 100 L250 110 L220 110 L220 120 L200 125 L100 125 L80 120 L80 110 L50 110 Z"
-                        fill="currentColor"
-                        className="opacity-90"
-                      />
-                      {/* Car Windows */}
-                      <path
-                        d="M85 80 L95 70 L205 70 L215 80 L200 75 L100 75 Z"
-                        fill="#1f2937"
-                        className="opacity-80"
-                      />
-                      {/* Wheels */}
-                      <circle cx="90" cy="115" r="15" fill="#374151" />
-                      <circle cx="210" cy="115" r="15" fill="#374151" />
-                      <circle cx="90" cy="115" r="10" fill="#6b7280" />
-                      <circle cx="210" cy="115" r="10" fill="#6b7280" />
-                      {/* Headlights */}
-                      <circle cx="245" cy="95" r="8" fill="#fbbf24" />
-                      <circle cx="55" cy="95" r="8" fill="#ef4444" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/*  Floating elements */}
-                <div className="absolute -top-4 -left-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-xl animate-bounce">
-                  🆕 New Arrival
-                </div>
-
-                {/* Additional floating badge */}
-                <div className="absolute top-1/2 -right-6 bg-green-500 text-white px-4 py-2 rounded-full font-semibold text-sm shadow-lg transform rotate-12">
-                  Certified ✓
-                </div>
               </div>
             </div>
           </div>
@@ -285,7 +235,7 @@ export default function HomePage() {
                 </div>
 
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="inline-flex items-center bg-white text-red-600 px-8 py-4 rounded-xl hover:bg-blue-700 transition-all duration-300 font-bold shadow-xl hover:scale-105"
                 >
                   Schedule Test Drive
@@ -311,11 +261,8 @@ export default function HomePage() {
 
           {/* Filter Tabs */}
           <div className="flex justify-center mb-12">
-            <div className="inline-flex rounded-xl bg-gray-200 p-1">
-              <button className="px-8 py-3 text-sm font-medium text-white bg-red-600 rounded-lg shadow-lg">
-                Cars
-              </button>
-              <button className="px-8 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <div className="inline-flex rounded-xl bg-red-600 p-1">
+              <button className="px-8 py-3 text-sm font-bold text-gray-200 hover:text-gray-700">
                 Featured Items
               </button>
             </div>
@@ -560,7 +507,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="bg-white text-red-600 px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 font-bold shadow-2xl hover:scale-105"
               >
                 Contact Us Today

@@ -260,7 +260,7 @@ export default function AboutPage() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                   <Link
-                    href="/contact"
+                    href="/contact-us"
                     className="inline-flex items-center border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-300 font-semibold"
                   >
                     Contact Us
@@ -614,7 +614,7 @@ export default function AboutPage() {
               Browse Our Inventory
             </Link>
             <Link
-              href="/contact"
+              href="/contact-us"
               className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all duration-300 font-bold"
             >
               Schedule a Visit

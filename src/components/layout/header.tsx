@@ -12,33 +12,12 @@ const navigation = [
   {
     name: "About Us",
     href: "/about",
-    submenu: [
-      { name: "Our Story", href: "/about" },
-      { name: "Our Team", href: "/team" },
-      { name: "Reviews", href: "/reviews" },
-    ],
   },
   {
     name: "Inventory",
     href: "/inventory",
-    submenu: [
-      { name: "All Vehicles", href: "/inventory" },
-      { name: "New Arrivals", href: "/inventory?sort=newest" },
-      { name: "Under $20K", href: "/inventory?maxPrice=20000" },
-      { name: "Certified Pre-Owned", href: "/inventory?condition=certified" },
-    ],
   },
-  {
-    name: "Service",
-    href: "/service",
-    submenu: [
-      { name: "Financing", href: "/financing" },
-      { name: "Trade-In", href: "/trade-in" },
-      { name: "Warranties", href: "/warranties" },
-      { name: "Service Center", href: "/service" },
-    ],
-  },
-  { name: "Contact Us", href: "/contact" },
+  { name: "Contact Us", href: "/contact-us" },
 ];
 
 export function Header() {
@@ -124,9 +103,6 @@ export function Header() {
                   <div
                     key={item.name}
                     className="relative nav-item"
-                    onMouseEnter={() =>
-                      item.submenu && setActiveDropdown(item.name)
-                    }
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <Link
@@ -138,29 +114,7 @@ export function Header() {
                       }`}
                     >
                       {item.name}
-                      {item.submenu && (
-                        <ChevronDown
-                          className={`ml-1 h-4 w-4 transition-transform duration-200 ${
-                            activeDropdown === item.name ? "rotate-180" : ""
-                          }`}
-                        />
-                      )}
                     </Link>
-
-                    {/* Dropdown Menu */}
-                    {item.submenu && activeDropdown === item.name && (
-                      <div className="dropdown-menu">
-                        {item.submenu.map((subItem) => (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            className="block px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors rounded-lg mx-2"
-                          >
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -180,7 +134,7 @@ export function Header() {
                 Browse Inventory
               </Link>
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
               >
                 Get Quote
@@ -255,20 +209,6 @@ export function Header() {
                       >
                         {item.name}
                       </Link>
-                      {item.submenu && (
-                        <div className="ml-4 mt-2 space-y-1">
-                          {item.submenu.map((subItem) => (
-                            <Link
-                              key={subItem.name}
-                              href={subItem.href}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="block px-4 py-2 text-sm text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                            >
-                              {subItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -283,7 +223,7 @@ export function Header() {
                   Browse Inventory
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-medium text-center shadow-lg"
                 >
