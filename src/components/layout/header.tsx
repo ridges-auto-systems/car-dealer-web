@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Phone, Mail, MapPin, ChevronDown } from "lucide-react";
+import CartBadge from "../cart/cartBadge";
+import { useCart } from "@/lib/contexts/cartContext";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -166,6 +168,11 @@ export function Header() {
 
             {/* Desktop CTA Buttons */}
             <div className="desktop-cta">
+              <CartBadge
+                className="!bg-red-600 hover:!bg-red-700 !text-white"
+                showText={true}
+              />
+
               <Link
                 href="/inventory"
                 className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition-all duration-300 font-medium border border-gray-300 hover:border-gray-400 mr-4"
@@ -181,12 +188,20 @@ export function Header() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="mobile-menu-btn p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+            <div className="mobile-menu-btn flex items-center space-x-3">
+              {/* 🛒 ADD CART BADGE FOR MOBILE (NEXT TO MENU BUTTON) */}
+              <CartBadge
+                className="!bg-red-600 hover:!bg-red-700"
+                showText={false}
+              />
+
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -215,6 +230,15 @@ export function Header() {
             </div>
 
             <div className="py-6 px-6">
+              {/* 🛒 ADD CART BADGE TO TOP OF MOBILE MENU */}
+              <div className="mb-6">
+                <CartBadge
+                  className="w-full justify-center !bg-red-600 hover:!bg-red-700"
+                  showText={true}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                />
+              </div>
+
               <nav className="space-y-2">
                 {navigation.map((item) => {
                   const isActive = pathname === item.href;
@@ -317,7 +341,7 @@ export function Header() {
         }
 
         .mobile-menu-btn {
-          display: block;
+          display: flex;
         }
 
         .mobile-menu-overlay {
