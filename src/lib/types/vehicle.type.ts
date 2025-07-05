@@ -1,3 +1,4 @@
+// lib/types/vehicle.type.ts - Updated with RESERVED status
 export type VehicleCondition =
   | "NEW"
   | "USED"
@@ -9,10 +10,21 @@ export type VehicleStatus =
   | "AVAILABLE"
   | "PENDING"
   | "HOLD"
+  | "RESERVED" // ← Added this
   | "SOLD"
   | "UNAVAILABLE"
   | "IN_TRANSIT"
   | "IN_SERVICE";
+
+// Service History Interface (instead of string)
+export interface ServiceRecord {
+  id?: string;
+  date: string;
+  service: string;
+  mileage?: number;
+  cost?: number;
+  notes?: string;
+}
 
 export interface Vehicle {
   id: string;
@@ -53,7 +65,7 @@ export interface Vehicle {
   inspectionDate?: string;
   inspectionNotes?: string;
   accidentHistory?: string;
-  serviceHistory?: string;
+  serviceHistory?: ServiceRecord[] | string; // ← Can be array or string
   previousOwners?: number;
   location?: string;
   isFeatured: boolean;
@@ -67,6 +79,7 @@ export interface Vehicle {
   createdAt: string;
   updatedAt: string;
 }
+
 export interface VehicleHistory {
   id: string;
   vehicleId: string;
@@ -78,6 +91,7 @@ export interface VehicleHistory {
   userEmail?: string;
   createdAt: string;
 }
+
 export interface VehicleFilters {
   make?: string;
   model?: string;
@@ -93,8 +107,11 @@ export interface VehicleFilters {
   isFeatured?: boolean;
   isOnline?: boolean;
   searchQuery?: string;
+  search?: string; // Add this for search compatibility
   page: number;
   limit: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  minPrice?: number; // Add these for price range filtering
+  maxPrice?: number;
 }
