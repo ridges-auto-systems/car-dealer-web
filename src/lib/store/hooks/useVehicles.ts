@@ -67,8 +67,6 @@ const transformVehicle = (apiVehicle: any): Vehicle => {
 async function fetchVehiclesFromAPI(
   filters: VehicleFilters = { page: 1, limit: 20 }
 ) {
-  console.log("🔍 Fetching vehicles with filters:", filters);
-
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
