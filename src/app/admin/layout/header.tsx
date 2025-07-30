@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ userRole, setUserRole }) => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  Rides Automotors
+                  Ridges Automotors
                 </h1>
                 <p className="text-sm text-gray-600">Admin Dashboard</p>
               </div>

@@ -38,15 +38,15 @@ const initialState: AuthState = {
 // Helper functions for localStorage
 const saveAuthData = (token: string, user: User) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("rides_auth_token", token);
-    localStorage.setItem("rides_user_data", JSON.stringify(user));
+    localStorage.setItem("Ridges_auth_token", token);
+    localStorage.setItem("Ridges_user_data", JSON.stringify(user));
   }
 };
 
 const clearAuthData = () => {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("rides_auth_token");
-    localStorage.removeItem("rides_user_data");
+    localStorage.removeItem("Ridges_auth_token");
+    localStorage.removeItem("Ridges_user_data");
   }
 };
 

@@ -28,7 +28,7 @@ const useAuth = () => {
       setState({
         user: {
           id: "1",
-          email: "admin@ridesautomotors.com",
+          email: "admin@ridgesautomotors.com",
           firstName: "Admin",
           lastName: "User",
           role: "ADMIN",
@@ -50,7 +50,7 @@ const SimpleAuthPage: React.FC = () => (
         <span className="text-white font-bold text-2xl">R</span>
       </div>
       <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        Rides Automotors
+        Ridges Automotors
       </h1>
       <p className="text-gray-600 mb-6">Please sign in to continue</p>
       <button className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors">
@@ -149,7 +149,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  Rides Automotors
+                  Ridges Automotors
                 </h1>
                 <p className="text-sm text-gray-600">Dashboard</p>
               </div>

@@ -2,10 +2,12 @@
 import React, { useState } from "react";
 import Sidebar from "./sidebar";
 import Header from "./header";
-//import DashboardView from "../views/DashboardView";
 import LeadsView from "../views/leadsView";
 import { ReduxProvider } from "@/lib/store/provider";
 import VehiclesView from "../views/vehicleView";
+import DashboardView from "../views/dashboardView";
+import UsersView from "../views/usersView";
+import ReportsView from "../views/reportViews";
 //import UsersView from "../views/UsersView";
 //import ReportsView from "../views/ReportsView";
 //import SettingsView from "../views/SettingsView";
@@ -20,19 +22,19 @@ const AdminLayout = () => {
         return <LeadsView />;
       case "vehicles":
         return <VehiclesView />;
-      /*
-       case "dashboard":
+      case "dashboard":
         return <DashboardView userRole={userRole} />;
-      
+
       case "users":
         return <UsersView userRole={userRole} />;
       case "reports":
         return <ReportsView userRole={userRole} />;
+      /*
       case "settings":
         return <SettingsView userRole={userRole} />;
+        */
       default:
         return <DashboardView userRole={userRole} />;
-        */
     }
   };
 

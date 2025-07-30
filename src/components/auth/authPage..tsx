@@ -55,7 +55,9 @@ const AuthPage: React.FC = () => {
           <div className="w-16 h-16 bg-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">R</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Rides Automotors</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Ridges Automotors
+          </h1>
           <p className="text-gray-600 mt-1">
             Quality vehicles, trusted service
           </p>

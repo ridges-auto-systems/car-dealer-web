@@ -121,13 +121,13 @@ class AuthService {
 
   // Get stored token
   getToken(): string | null {
-    return localStorage.getItem("rides_auth_token");
+    return localStorage.getItem("Ridges_auth_token");
   }
 
   // Clear stored data
   clearStorage(): void {
-    localStorage.removeItem("rides_auth_token");
-    localStorage.removeItem("rides_user_data");
+    localStorage.removeItem("Ridges_auth_token");
+    localStorage.removeItem("Ridges_user_data");
   }
 
   // Test backend connection

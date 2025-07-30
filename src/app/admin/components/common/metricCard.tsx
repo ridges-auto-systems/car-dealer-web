@@ -11,6 +11,7 @@ type MetricCardProps = {
   };
   icon: React.ElementType;
   color?: string;
+  trend?: number;
 };
 
 const MetricCard: React.FC<MetricCardProps> = ({
