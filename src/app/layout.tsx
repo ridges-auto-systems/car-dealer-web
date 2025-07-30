@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rides Automotors - Admin Dashboard",
+  title: "Ridges Automotors - Admin Dashboard",
   description: "Professional automotive dealership management system",
 };
 

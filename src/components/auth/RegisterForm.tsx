@@ -130,7 +130,7 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">
-          Join Rides Automotors
+          Join Ridges Automotors
         </h2>
         <p className="mt-2 text-gray-600">Create your account to get started</p>
       </div>

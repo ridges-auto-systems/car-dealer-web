@@ -22,8 +22,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       try {
         // Check if we have stored auth data
-        const storedToken = localStorage.getItem("rides_auth_token");
-        const storedUserData = localStorage.getItem("rides_user_data");
+        const storedToken = localStorage.getItem("Ridges_auth_token");
+        const storedUserData = localStorage.getItem("Ridges_user_data");
 
         if (storedToken && storedUserData) {
           console.log("🔄 Restoring auth from localStorage");
@@ -43,8 +43,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error("❌ Error initializing auth:", error);
         // If there's an error, clear any corrupted data
-        localStorage.removeItem("rides_auth_token");
-        localStorage.removeItem("rides_user_data");
+        localStorage.removeItem("Ridges_auth_token");
+        localStorage.removeItem("Ridges_user_data");
       }
     };
 
