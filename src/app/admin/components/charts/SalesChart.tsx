@@ -21,20 +21,30 @@ ChartJS.register(
   Legend
 );
 
-const SalesChart = () => {
-  const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+interface SalesChartData {
+  labels: string[];
+  vehiclesSold: number[];
+  revenue: number[];
+}
+
+interface SalesChartProps {
+  data: SalesChartData;
+}
+
+const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
+  const chartData = {
+    labels: data.labels,
     datasets: [
       {
         label: "Vehicles Sold",
-        data: [12, 19, 8, 15, 22, 18],
+        data: data.vehiclesSold,
         borderColor: "rgb(220, 38, 38)",
         backgroundColor: "rgba(220, 38, 38, 0.5)",
         tension: 0.3,
       },
       {
         label: "Revenue (K)",
-        data: [180, 210, 150, 240, 280, 250],
+        data: data.revenue,
         borderColor: "rgb(16, 185, 129)",
         backgroundColor: "rgba(16, 185, 129, 0.5)",
         tension: 0.3,
@@ -95,7 +105,7 @@ const SalesChart = () => {
     },
   };
 
-  return <Line data={data} options={options} />;
+  return <Line data={chartData} options={options} />;
 };
 
 export default SalesChart;

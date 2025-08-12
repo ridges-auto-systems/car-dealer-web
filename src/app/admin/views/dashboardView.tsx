@@ -15,43 +15,86 @@ import MetricCard from "../components/common/metricCard";
 import SalesChart from "../components/charts/SalesChart";
 import ActivityFeed from "../components/activity/ActivityFeed";
 
+interface DashboardStats {
+  totalSales: number;
+  newLeads: number;
+  inventoryCount: number;
+  revenue: number;
+  conversionRate: number;
+  avgLeadTime: number;
+  topSellingModel?: string;
+}
+
+interface Activity {
+  id: number;
+  type: string;
+  description: string;
+  time: string;
+}
+
+interface SalesData {
+  labels: string[];
+  vehiclesSold: number[];
+  revenue: number[];
+}
+
 interface DashboardViewProps {
   userRole?: "ADMIN" | "SALES_REP";
+  stats: DashboardStats;
+  activities: Activity[];
+  salesData: SalesData;
+  isLoading?: boolean;
 }
 
 const DashboardView: React.FC<DashboardViewProps> = ({
   userRole = "ADMIN",
+  stats,
+  activities = [],
+  salesData,
+  isLoading = false,
 }) => {
-  // Mock data - replace with real API calls
-  const stats = {
-    totalSales: 42,
-    newLeads: 18,
-    inventoryCount: 76,
-    revenue: 1250000,
-    conversionRate: 28.5,
-    avgLeadTime: 7.2,
+  // Default stats if none provided
+  const defaultStats: DashboardStats = {
+    totalSales: 0,
+    newLeads: 0,
+    inventoryCount: 0,
+    revenue: 0,
+    conversionRate: 0,
+    avgLeadTime: 0,
+    topSellingModel: "N/A",
   };
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: "sale",
-      description: "2023 Toyota Camry sold to John Doe",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      type: "lead",
-      description: "New lead from website contact form",
-      time: "4 hours ago",
-    },
-    {
-      id: 3,
-      type: "test-drive",
-      description: "Test drive scheduled for Honda Accord",
-      time: "1 day ago",
-    },
-  ];
+  const defaultSalesData: SalesData = {
+    labels: [],
+    vehiclesSold: [],
+    revenue: [],
+  };
+
+  // Use provided data or defaults
+  const currentStats = stats || defaultStats;
+  const currentSalesData = salesData || defaultSalesData;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl p-6 shadow-lg border border-gray-200"
+                >
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -62,30 +105,30 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Total Sales"
-            value={stats.totalSales}
+            value={currentStats.totalSales}
             icon={Car}
             color="blue"
-            trend={12.5}
+            trend={12.5} // You might want to pass this as part of stats
           />
           <MetricCard
             title="New Leads"
-            value={stats.newLeads}
+            value={currentStats.newLeads}
             icon={Users}
             color="green"
-            trend={8.3}
+            trend={8.3} // You might want to pass this as part of stats
           />
           <MetricCard
             title="Inventory"
-            value={stats.inventoryCount}
+            value={currentStats.inventoryCount}
             icon={Car}
             color="purple"
           />
           <MetricCard
             title="Revenue"
-            value={`$${(stats.revenue / 1000).toFixed(0)}K`}
+            value={`${(currentStats.revenue / 1000).toFixed(0)}K`}
             icon={DollarSign}
             color="orange"
-            trend={18.2}
+            trend={18.2} // You might want to pass this as part of stats
           />
         </div>
 
@@ -99,7 +142,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-sm text-gray-600">Last 6 months</span>
               </div>
             </div>
-            <SalesChart />
+            <SalesChart data={currentSalesData} />
           </Card>
 
           <Card>
@@ -110,7 +153,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Conversion Rate</span>
                 <span className="font-medium text-gray-600">
-                  {stats.conversionRate}%
+                  {currentStats.conversionRate}%
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -118,13 +161,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="flex items-center space-x-1">
                   <Clock className="h-4 w-4 text-gray-500" />
                   <span className="font-medium text-gray-600">
-                    {stats.avgLeadTime} days
+                    {currentStats.avgLeadTime} days
                   </span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Top Selling Model</span>
-                <span className="font-medium text-gray-600">Toyota Camry</span>
+                <span className="font-medium text-gray-600">
+                  {currentStats.topSellingModel || "N/A"}
+                </span>
               </div>
             </div>
           </Card>
@@ -133,7 +178,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Activity Feed */}
         <Card>
           <h3 className="text-lg font-semibold mb-4 px-4">Recent Activity</h3>
-          <ActivityFeed activities={recentActivities} />
+          <ActivityFeed activities={activities} />
         </Card>
       </div>
     </div>
