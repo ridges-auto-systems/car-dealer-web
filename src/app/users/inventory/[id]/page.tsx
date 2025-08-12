@@ -29,7 +29,7 @@ import {
 // Import backend hook and cart
 import { useVehicles } from "@/lib/store/hooks/useVehicles";
 import { useCart } from "@/lib/contexts/cartContext";
-import type { Vehicle } from "../../../lib/types/vehicle.type";
+import type { Vehicle } from "../../../../lib/types/vehicle.type";
 
 // Mock similar vehicles data (you can replace this with API call later)
 const similarVehicles = [

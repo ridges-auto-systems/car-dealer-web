@@ -25,7 +25,7 @@ import Link from "next/link";
 
 // Import the backend-connected useVehicles hook
 import { useVehicles } from "@/lib/store/hooks/useVehicles";
-import type { Vehicle } from "../../lib/types/vehicle.type";
+import type { Vehicle } from "../../../lib/types/vehicle.type";
 
 // Cart functionality - you'll need to create this context/hook
 interface CartItem {
