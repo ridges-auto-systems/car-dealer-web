@@ -70,71 +70,6 @@ interface Activity {
 }
 
 // ============================================================================
-// MOCK DATA
-// ============================================================================
-
-const mockCommunications: CommunicationLog[] = [
-  {
-    id: "1",
-    type: "call",
-    direction: "outbound",
-    content:
-      "Initial contact call - customer interested in Toyota Camry, discussed pricing and financing options",
-    timestamp: "2024-01-16T10:30:00Z",
-    duration: 12,
-    outcome: "Scheduled showroom visit",
-    salesRep: "Alice Johnson",
-  },
-  {
-    id: "2",
-    type: "email",
-    direction: "outbound",
-    subject: "Vehicle Information - 2022 Toyota Camry",
-    content:
-      "Sent detailed brochure and pricing information for the Toyota Camry as requested",
-    timestamp: "2024-01-16T11:15:00Z",
-    salesRep: "Alice Johnson",
-  },
-  {
-    id: "3",
-    type: "note",
-    direction: "internal",
-    content:
-      "Customer mentioned they need to trade in their 2018 Honda Civic. Estimated trade value around $18,000",
-    timestamp: "2024-01-16T14:20:00Z",
-    salesRep: "Alice Johnson",
-  },
-];
-
-const mockActivities: Activity[] = [
-  {
-    id: "1",
-    type: "status_change",
-    description: "Status changed from NEW to CONTACTED",
-    timestamp: "2024-01-16T10:30:00Z",
-    user: "Alice Johnson",
-    oldValue: "NEW",
-    newValue: "CONTACTED",
-  },
-  {
-    id: "2",
-    type: "priority_change",
-    description: "Priority upgraded to HIGH",
-    timestamp: "2024-01-16T10:35:00Z",
-    user: "Alice Johnson",
-    oldValue: "MEDIUM",
-    newValue: "HIGH",
-  },
-  {
-    id: "3",
-    type: "note_added",
-    description: "Added note about trade-in vehicle",
-    timestamp: "2024-01-16T14:20:00Z",
-    user: "Alice Johnson",
-  },
-];
-
-// ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
 
@@ -504,123 +439,12 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({
           <span>Add Communication</span>
         </button>
       </div>
-
-      <div className="space-y-4">
-        {mockCommunications.map((comm) => {
-          const IconComponent = getTimelineIcon(comm.type);
-          return (
-            <div
-              key={comm.id}
-              className="bg-white border border-gray-200 rounded-xl p-6"
-            >
-              <div className="flex items-start space-x-4">
-                <div
-                  className={`p-2 rounded-full ${
-                    comm.type === "call"
-                      ? "bg-green-100"
-                      : comm.type === "email"
-                      ? "bg-blue-100"
-                      : comm.type === "sms"
-                      ? "bg-purple-100"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  <IconComponent
-                    className={`h-4 w-4 ${
-                      comm.type === "call"
-                        ? "text-green-600"
-                        : comm.type === "email"
-                        ? "text-blue-600"
-                        : comm.type === "sms"
-                        ? "text-purple-600"
-                        : "text-gray-600"
-                    }`}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900 capitalize">
-                        {comm.type}
-                      </span>
-                      <span className="text-sm text-gray-500">•</span>
-                      <span className="text-sm text-gray-500 capitalize">
-                        {comm.direction}
-                      </span>
-                      {comm.duration && (
-                        <>
-                          <span className="text-sm text-gray-500">•</span>
-                          <span className="text-sm text-gray-500">
-                            {comm.duration} min
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {formatDate(comm.timestamp)}
-                    </span>
-                  </div>
-                  {comm.subject && (
-                    <div className="font-medium text-gray-900 mb-2">
-                      {comm.subject}
-                    </div>
-                  )}
-                  <p className="text-gray-700 mb-2">{comm.content}</p>
-                  {comm.outcome && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="text-sm text-green-800">
-                        <strong>Outcome:</strong> {comm.outcome}
-                      </div>
-                    </div>
-                  )}
-                  <div className="text-sm text-gray-500 mt-2">
-                    by {comm.salesRep}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 
   const renderActivityTab = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900">Activity Timeline</h3>
-
-      <div className="space-y-3">
-        {mockActivities.map((activity, index) => (
-          <div key={activity.id} className="flex items-start space-x-4">
-            <div className="flex flex-col items-center">
-              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-              {index < mockActivities.length - 1 && (
-                <div className="w-px h-12 bg-gray-300 mt-2"></div>
-              )}
-            </div>
-            <div className="flex-1 pb-6">
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-900">
-                    {activity.description}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {formatDate(activity.timestamp)}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">by {activity.user}</div>
-                {activity.oldValue && activity.newValue && (
-                  <div className="mt-2 text-sm">
-                    <span className="text-red-600">{activity.oldValue}</span>
-                    <ChevronRight className="h-4 w-4 inline mx-1 text-gray-400" />
-                    <span className="text-green-600">{activity.newValue}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 

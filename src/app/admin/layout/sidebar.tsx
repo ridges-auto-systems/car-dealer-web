@@ -30,9 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         ]
       : []),
     { id: "reports", label: "Reports", icon: TrendingUp, badge: null },
-    ...(userRole === "ADMIN"
-      ? [{ id: "settings", label: "Settings", icon: Settings, badge: null }]
-      : []),
+    { id: "settings", label: "Settings", icon: Settings, badge: null },
   ];
 
   return (

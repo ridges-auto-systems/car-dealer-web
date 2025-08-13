@@ -8,9 +8,7 @@ import VehiclesView from "../views/vehicleView";
 import DashboardView from "../views/dashboardView";
 import UsersView from "../views/usersView";
 import ReportsView from "../views/reportViews";
-//import UsersView from "../views/UsersView";
-//import ReportsView from "../views/ReportsView";
-//import SettingsView from "../views/SettingsView";
+import SettingsView from "../views/settingsView";
 
 const AdminLayout = () => {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -24,15 +22,12 @@ const AdminLayout = () => {
         return <VehiclesView />;
       case "dashboard":
         return <DashboardView userRole={userRole} />;
-
       case "users":
         return <UsersView userRole={userRole} />;
       case "reports":
         return <ReportsView userRole={userRole} />;
-      /*
       case "settings":
         return <SettingsView userRole={userRole} />;
-        */
       default:
         return <DashboardView userRole={userRole} />;
     }

@@ -20,26 +20,37 @@ const MetricCard: React.FC<MetricCardProps> = ({
   change,
   icon: Icon,
   color = "blue",
+  trend,
 }) => {
+  // Use either change prop or trend prop for displaying trend
+  const trendData =
+    change ||
+    (trend !== undefined
+      ? {
+          positive: trend > 0,
+          value: Math.abs(trend),
+        }
+      : undefined);
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          {change && (
+          {trendData && (
             <div className="flex items-center mt-2">
-              {change.positive ? (
+              {trendData.positive ? (
                 <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
               ) : (
                 <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
               )}
               <span
                 className={`text-sm font-medium ${
-                  change.positive ? "text-green-600" : "text-red-600"
+                  trendData.positive ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {change.value}%
+                {trendData.value}%
               </span>
               <span className="text-sm text-gray-500 ml-1">vs last month</span>
             </div>

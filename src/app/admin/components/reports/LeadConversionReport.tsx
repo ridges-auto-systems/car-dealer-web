@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { LineChart } from "lucide-react";
 
 // Register all necessary components
 ChartJS.register(
@@ -24,115 +25,83 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-interface LeadConversionReportProps {
-  dateRange: {
-    start: Date;
-    end: Date;
-  };
+interface LeadConversionData {
+  totalLeads: number;
+  convertedLeads: number;
+  conversionRate: number;
+  avgConversionTime: number;
+  leadsBySource: Array<{
+    source: string;
+    leads: number;
+    conversions: number;
+    conversionRate: number;
+  }>;
+  conversionFunnel: Array<{
+    stage: string;
+    count: number;
+    percentage: number;
+  }>;
 }
 
-const LeadConversionReport: React.FC<LeadConversionReportProps> = ({
-  dateRange,
-}) => {
-  // In a real app, you would fetch data based on dateRange
-  const data = {
-    labels: [
-      "New",
-      "Contacted",
-      "Qualified",
-      "Test Drive",
-      "Negotiating",
-      "Sold",
-    ],
-    datasets: [
-      {
-        type: "bar" as const, // Explicitly set type
-        label: "Leads",
-        data: [120, 80, 60, 40, 25, 15],
-        backgroundColor: "rgba(59, 130, 246, 0.7)",
-        order: 2, // Ensure bars appear behind lines
-      },
-      {
-        type: "line" as const, // Explicitly set type
-        label: "Conversion Rate",
-        data: [100, 66.7, 50, 33.3, 20.8, 12.5],
-        borderColor: "rgba(16, 185, 129, 0.7)",
-        backgroundColor: "rgba(16, 185, 129, 0.1)",
-        borderWidth: 2,
-        tension: 0.1,
-        yAxisID: "y1",
-        order: 1, // Ensure line appears in front
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    interaction: {
-      mode: "index" as const,
-      intersect: false,
-    },
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context: any) {
-            let label = context.dataset.label || "";
-            if (label) {
-              label += ": ";
-            }
-            if (context.datasetIndex === 1) {
-              label += context.raw + "%";
-            } else {
-              label += context.raw;
-            }
-            return label;
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        type: "linear" as const,
-        display: true,
-        position: "left" as const,
-        title: {
-          display: true,
-          text: "Number of Leads",
-        },
-      },
-      y1: {
-        type: "linear" as const,
-        display: true,
-        position: "right" as const,
-        grid: {
-          drawOnChartArea: false,
-        },
-        min: 0,
-        max: 100,
-        title: {
-          display: true,
-          text: "Conversion Rate (%)",
-        },
-      },
-    },
-  };
-
-  return (
-    <div>
-      <h4 className="text-lg font-semibold mb-4">
-        Lead Conversion Funnel ({format(dateRange.start, "MMM d")} -{" "}
-        {format(dateRange.end, "MMM d")})
-      </h4>
-      <div className="h-96">
-        {/* @ts-ignore - We're using a mixed chart which isn't perfectly typed */}
-        <Bar data={data} options={options} />
+const LeadConversionReport: React.FC<{ data: LeadConversionData }> = ({
+  data,
+}) => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-blue-800">Total Leads</h3>
+        <p className="text-2xl font-bold text-blue-900">{data.totalLeads}</p>
+      </div>
+      <div className="bg-green-50 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-green-800">Converted</h3>
+        <p className="text-2xl font-bold text-green-900">
+          {data.convertedLeads}
+        </p>
+      </div>
+      <div className="bg-purple-50 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-purple-800">Conversion Rate</h3>
+        <p className="text-2xl font-bold text-purple-900">
+          {data.conversionRate}%
+        </p>
+      </div>
+      <div className="bg-orange-50 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-orange-800">
+          Avg Conversion Time
+        </h3>
+        <p className="text-2xl font-bold text-orange-900">
+          {data.avgConversionTime} days
+        </p>
       </div>
     </div>
-  );
-};
+
+    {/* Lead Sources */}
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Lead Sources Performance</h3>
+      {data.leadsBySource.length > 0 ? (
+        <div className="space-y-2">
+          {data.leadsBySource.map((source, index) => (
+            <div
+              key={index}
+              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+            >
+              <span className="font-medium">{source.source}</span>
+              <div className="text-right">
+                <div className="font-bold">{source.leads} leads</div>
+                <div className="text-sm text-gray-600">
+                  {source.conversions} conversions ({source.conversionRate}%)
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-gray-500 py-8">
+          <LineChart className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+          <p>No lead source data available</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
 
 export default LeadConversionReport;
