@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import {
   Car,
@@ -19,7 +20,12 @@ import {
   Mail,
   Phone,
   LucideIcon,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
+import { useDashboard } from "@/lib/store/hooks/useDashboard";
+import SalesChart from "@/app/admin/components/charts/SalesChart";
+import type { SalesDataPoint } from "@/lib/types/dashboard";
 
 // TypeScript interfaces
 interface DashboardStats {
@@ -43,16 +49,6 @@ interface Activity {
   scheduled?: string;
 }
 
-interface SalesDataPoint {
-  month: string;
-  vehicles: number;
-  revenue: number;
-}
-
-interface SalesData {
-  data: SalesDataPoint[];
-}
-
 interface MetricCardProps {
   title: string;
   value: number | string;
@@ -69,22 +65,32 @@ interface ActivityIconProps {
 
 interface DashboardViewProps {
   userRole?: "ADMIN" | "SALES_REP";
-  stats?: DashboardStats;
-  activities?: Activity[];
-  salesData?: SalesData;
-  isLoading?: boolean;
 }
 
 const DashboardView: React.FC<DashboardViewProps> = ({
   userRole = "ADMIN",
-  stats,
-  activities = [],
-  salesData,
-  isLoading = false,
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState("6months");
 
-  // Default data when no props provided
+  // Use the dashboard hook
+  const {
+    isLoading,
+    hasError,
+    stats,
+    salesData,
+    activities,
+    lastUpdated,
+    actions,
+  } = useDashboard({
+    timeframe: "30",
+    period: "monthly",
+    months: 6,
+    activityLimit: 5,
+    autoRefresh: true,
+    refreshInterval: 300000, // 5 minutes
+  });
+
+  // Default data when no data is available
   const defaultStats: DashboardStats = {
     totalSales: 0,
     newLeads: 0,
@@ -95,13 +101,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     topSellingModel: "N/A",
   };
 
-  const defaultSalesData: SalesData = {
-    data: [],
-  };
+  const defaultSalesData: SalesDataPoint[] = [];
 
-  // Use provided data or defaults
+  // Use hook data or defaults
   const currentStats = stats || defaultStats;
-  const currentSalesData = salesData || defaultSalesData;
+  // Ensure each sales data point has a 'month' property for SalesChart
+  const currentSalesData = (salesData || []).map((item: any, idx: number) => ({
+    month: item.month ?? item.label ?? `Month ${idx + 1}`,
+    vehicles: item.vehicles,
+    revenue: item.revenue,
+  }));
+  const currentActivities = activities || [];
 
   const MetricCard: React.FC<MetricCardProps> = ({
     title,
@@ -148,61 +158,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     </div>
   );
 
-  const SalesChart = () => {
-    if (!currentSalesData.data || currentSalesData.data.length === 0) {
-      return (
-        <div className="h-64 flex items-center justify-center text-gray-500">
-          <div className="text-center">
-            <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-sm">No sales data available</p>
-          </div>
-        </div>
-      );
-    }
-
-    const maxVehicles = Math.max(
-      ...currentSalesData.data.map((d) => d.vehicles)
-    );
-    const maxRevenue = Math.max(...currentSalesData.data.map((d) => d.revenue));
-
-    return (
-      <div className="h-64 flex items-end justify-between px-4 pb-4">
-        {currentSalesData.data.map((data, index) => (
-          <div
-            key={data.month}
-            className="flex flex-col items-center group cursor-pointer"
-          >
-            <div className="mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg">
-              {data.vehicles} vehicles
-              <br />${data.revenue}K revenue
-            </div>
-            <div className="flex space-x-1">
-              <div
-                className="w-6 bg-gradient-to-t from-blue-500 to-blue-400 rounded-t hover:from-blue-600 hover:to-blue-500 transition-colors duration-200"
-                style={{
-                  height: `${
-                    maxVehicles > 0 ? (data.vehicles / maxVehicles) * 180 : 0
-                  }px`,
-                }}
-              />
-              <div
-                className="w-6 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t hover:from-emerald-600 hover:to-emerald-500 transition-colors duration-200"
-                style={{
-                  height: `${
-                    maxRevenue > 0 ? (data.revenue / maxRevenue) * 180 : 0
-                  }px`,
-                }}
-              />
-            </div>
-            <p className="text-xs text-gray-600 mt-2 font-medium">
-              {data.month}
-            </p>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   const ActivityIcon: React.FC<ActivityIconProps> = ({ type }) => {
     const iconProps = "h-4 w-4";
     switch (type) {
@@ -218,6 +173,32 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         return <Activity className={`${iconProps} text-gray-500`} />;
     }
   };
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 p-6 bg-red-50 border border-red-200 text-red-700 rounded-2xl">
+            <AlertCircle className="h-6 w-6" />
+            <div className="flex-1">
+              <h3 className="font-semibold">Failed to load dashboard data</h3>
+              <p className="text-sm text-red-600 mt-1">
+                There was an error loading your dashboard information.
+              </p>
+            </div>
+            <button
+              onClick={actions.refresh}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
@@ -277,8 +258,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               <Download className="h-4 w-4 mr-2" />
               Export
             </button>
+            <button
+              onClick={actions.refresh}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </button>
           </div>
         </div>
+        {/* Last updated indicator */}
+        {lastUpdated && (
+          <div className="mt-2 text-xs text-gray-500">
+            Last updated: {new Date(lastUpdated).toLocaleString()}
+          </div>
+        )}
       </div>
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -329,18 +323,31 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                   Vehicles sold and revenue over time
                 </p>
               </div>
-              <div className="flex items-center space-x-4 text-sm">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  <span className="text-gray-600">Vehicles</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-gray-600">Vehicles</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
+                    <span className="text-gray-600">Revenue</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
-                  <span className="text-gray-600">Revenue</span>
-                </div>
+                <button
+                  onClick={actions.refetchSales}
+                  className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </button>
               </div>
             </div>
-            <SalesChart />
+            <SalesChart
+              data={currentSalesData}
+              isLoading={isLoading}
+              height="320px"
+            />
           </div>
 
           {/* Quick Stats */}
@@ -410,21 +417,30 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                   Latest updates from your dealership
                 </p>
               </div>
-              <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
-                <Eye className="h-4 w-4 mr-1" />
-                View All
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={actions.refetchActivity}
+                  className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </button>
+                <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  <Eye className="h-4 w-4 mr-1" />
+                  View All
+                </button>
+              </div>
             </div>
           </div>
 
-          {activities.length === 0 ? (
+          {currentActivities.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-sm">No recent activity</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {activities.map((activity) => (
+              {currentActivities.map((activity) => (
                 <div
                   key={activity.id}
                   className="p-6 hover:bg-gray-50 transition-colors duration-150"
@@ -442,9 +458,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                           {activity.priority && (
                             <span
                               className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                activity.priority === "High"
+                                activity.priority === "HIGH"
                                   ? "bg-red-100 text-red-700"
-                                  : activity.priority === "Medium"
+                                  : activity.priority === "MEDIUM"
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-gray-100 text-gray-700"
                               }`}
