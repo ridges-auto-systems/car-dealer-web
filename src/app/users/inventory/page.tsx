@@ -430,7 +430,7 @@ export default function VehicleInventoryPage() {
           <div className="space-y-2">
             {/* View Details Button */}
             <Link
-              href={`/inventory/${vehicle.id}`}
+              href={`/users/inventory/${vehicle.id}`}
               className="w-full bg-gray-100 text-gray-700 text-center py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
             >
               <Eye className="h-4 w-4" />
@@ -832,7 +832,7 @@ export default function VehicleInventoryPage() {
             </div>
           </div>
           <Link
-            href="/contact-us"
+            href="/users/contact-us"
             className="inline-block mt-8 bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold"
           >
             Contact Us Today

@@ -643,7 +643,7 @@ export default function ContactPage() {
               </div>
 
               <Link
-                href="/inventory"
+                href="/users/inventory"
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-bold shadow-lg hover:scale-105 flex items-center justify-center"
               >
                 <Car className="mr-2 h-5 w-5" />

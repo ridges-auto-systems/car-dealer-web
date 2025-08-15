@@ -23,10 +23,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, badge: null },
     { id: "leads", label: "Leads", icon: Users, badge: null },
-    ...(userRole === "ADMIN"
+    ...(userRole === "ADMIN" || userRole === "MANAGER"
       ? [
           { id: "vehicles", label: "Vehicles", icon: Car, badge: null },
-          { id: "users", label: "Users", icon: UserPlus, badge: null },
+          ...(userRole === "ADMIN"
+            ? [{ id: "users", label: "Users", icon: UserPlus, badge: null }]
+            : []),
         ]
       : []),
     { id: "reports", label: "Reports", icon: TrendingUp, badge: null },

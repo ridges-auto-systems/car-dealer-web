@@ -88,14 +88,14 @@ export default function HomePage() {
               {/*  CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/inventory"
+                  href="/users/inventory"
                   className="group inline-flex items-center justify-center bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold text-lg shadow-2xl hover:shadow-red-500/25 hover:scale-105"
                 >
                   Browse Inventory
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
-                  href="/contact-us"
+                  href="/users/contact-us"
                   className="inline-flex items-center justify-center border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold text-lg backdrop-blur-sm"
                 >
                   Learn More
@@ -150,7 +150,7 @@ export default function HomePage() {
 
           <div className="text-center">
             <Link
-              href="/inventory"
+              href="/users/inventory"
               className="inline-flex items-center bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-xl hover:scale-105"
             >
               More Brands
@@ -188,7 +188,7 @@ export default function HomePage() {
                   development.
                 </p>
                 <Link
-                  href="/inventory"
+                  href="/users/inventory"
                   className="inline-flex items-center bg-white text-red-600 px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 font-bold shadow-2xl hover:scale-105"
                 >
                   Buy Your Car
@@ -235,7 +235,7 @@ export default function HomePage() {
                 </div>
 
                 <Link
-                  href="/contact-us"
+                  href="/users/contact-us"
                   className="inline-flex items-center bg-white text-red-600 px-8 py-4 rounded-xl hover:bg-blue-700 transition-all duration-300 font-bold shadow-xl hover:scale-105"
                 >
                   Schedule Test Drive
@@ -371,7 +371,7 @@ export default function HomePage() {
 
           <div className="text-center mt-12">
             <Link
-              href="/inventory"
+              href="/users/inventory"
               className="inline-flex items-center bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-xl hover:scale-105"
             >
               <Car className="mr-2 h-5 w-5" />
@@ -507,13 +507,13 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/contact-us"
+                href="/users/contact-us"
                 className="bg-white text-red-600 px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 font-bold shadow-2xl hover:scale-105"
               >
                 Contact Us Today
               </Link>
               <Link
-                href="/inventory"
+                href="/users/inventory"
                 className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-red-600 transition-all duration-300 font-bold backdrop-blur-sm"
               >
                 Browse Inventory

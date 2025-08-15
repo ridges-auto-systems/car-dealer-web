@@ -1,19 +1,23 @@
 // lib/store/index.ts
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import userReducer from "./slices/user.slice";
 import leadReducer from "./slices/leadSlice";
 import authReducer from "./slices/auth.slice";
 import vehicleReducer from "./slices/vehicle.slice";
 import dashboardReducer from "./slices/dashboard.slice";
 import { dashboardApi } from "../services/dashboard.service";
+import salesReducer from "./slices/sales.slice";
 
 export const store = configureStore({
   reducer: {
+    users: userReducer,
     leads: leadReducer,
     auth: authReducer,
     dashboard: dashboardReducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     vehicles: vehicleReducer,
+    sales: salesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

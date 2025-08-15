@@ -1,18 +1,30 @@
 // components/AuthProvider.tsx
 "use client";
-import React, { useEffect } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/lib/store";
 import { restoreAuth } from "@/lib/store/slices/auth.slice";
 import { initializeAuth } from "@/lib/store/action/authActions";
 
-interface AuthProviderProps {
-  children: React.ReactNode;
+interface AuthContextType {
+  role: "ADMIN" | "MANAGER" | "SALES_REP" | "CUSTOMER";
+  isLoading: boolean;
+  initialized: boolean;
 }
 
-const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthContext = createContext<AuthContextType>({
+  role: "SALES_REP",
+  isLoading: true,
+  initialized: false,
+});
+
+export const useAuth = () => useContext(AuthContext);
+
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { initialized, isLoading } = useSelector(
+  const { initialized, isLoading, user } = useSelector(
     (state: RootState) => state.auth
   );
 
@@ -21,40 +33,29 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (initialized) return;
 
       try {
-        // Check if we have stored auth data
         const storedToken = localStorage.getItem("Ridges_auth_token");
         const storedUserData = localStorage.getItem("Ridges_user_data");
 
         if (storedToken && storedUserData) {
-          console.log("🔄 Restoring auth from localStorage");
           const user = JSON.parse(storedUserData);
-
-          // Restore auth state immediately
           dispatch(restoreAuth({ token: storedToken, user }));
-
-          // Optionally verify token with backend
-          // You can uncomment this if you want to verify the token is still valid
-          // dispatch(initializeAuth());
         } else {
-          console.log("🔄 No stored auth data found, calling initializeAuth");
-          // No stored data, try to initialize auth (this will fail gracefully)
           dispatch(initializeAuth());
         }
       } catch (error) {
         console.error("❌ Error initializing auth:", error);
-        // If there's an error, clear any corrupted data
         localStorage.removeItem("Ridges_auth_token");
         localStorage.removeItem("Ridges_user_data");
       }
     };
 
-    // Only run on client side
     if (typeof window !== "undefined") {
       initializeAuthentication();
     }
   }, [dispatch, initialized]);
 
-  // Show loading screen while initializing
+  const role = user?.role || "SALES_REP";
+
   if (!initialized || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -66,7 +67,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <AuthContext.Provider value={{ role, isLoading, initialized }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;

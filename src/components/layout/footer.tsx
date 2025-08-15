@@ -43,20 +43,23 @@ export function Footer() {
   // Navigation links organized by category
   const navigationLinks = {
     inventory: [
-      { name: "All Vehicles", href: "/inventory" },
-      { name: "Under KES 100000", href: "/inventory?maxPrice=100000" },
-      { name: "Certified Pre-Owned", href: "/inventory?condition=certified" },
-      { name: "Luxury Vehicles", href: "/inventory?category=luxury" },
+      { name: "All Vehicles", href: "/users/inventory" },
+      { name: "Under KES 100000", href: "/users/inventory?maxPrice=100000" },
+      {
+        name: "Certified Pre-Owned",
+        href: "/users/inventory?condition=certified",
+      },
+      { name: "Luxury Vehicles", href: "/users/inventory?category=luxury" },
     ],
     company: [
-      { name: "About Us", href: "/about" },
-      { name: "Our Team", href: "/team" },
-      { name: "Customer Reviews", href: "/reviews" },
-      { name: "Careers", href: "/careers" },
+      { name: "About Us", href: "/users/about" },
+      { name: "Our Team", href: "/users/team" },
+      { name: "Customer Reviews", href: "/users/reviews" },
+      { name: "Careers", href: "/users/careers" },
     ],
     support: [
-      { name: "Contact Us", href: "/contact-us" },
-      { name: "FAQ", href: "/faq" },
+      { name: "Contact Us", href: "/users/contact-us" },
+      { name: "FAQ", href: "/users/faq" },
     ],
   };
 
