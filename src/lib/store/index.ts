@@ -1,6 +1,7 @@
 // lib/store/index.ts
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import userReducer from "./slices/user.slice";
 import leadReducer from "./slices/leadSlice";
 import authReducer from "./slices/auth.slice";
 import vehicleReducer from "./slices/vehicle.slice";
@@ -9,6 +10,7 @@ import { dashboardApi } from "../services/dashboard.service";
 
 export const store = configureStore({
   reducer: {
+    users: userReducer,
     leads: leadReducer,
     auth: authReducer,
     dashboard: dashboardReducer,

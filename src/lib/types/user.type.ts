@@ -1,3 +1,4 @@
+// src/types/user.types.ts
 export type UserRole =
   | "CUSTOMER"
   | "SALES_REP"
@@ -12,8 +13,9 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
-  phone?: string;
+  phone?: string; // Optional field
   isActive: boolean;
+  lastActive: string;
   profileImage?: string;
   dateOfBirth?: string;
   address?: string;
@@ -24,4 +26,46 @@ export interface User {
   marketingOptIn: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// Admin-only roles for user creation
+export type AdminUserRole =
+  | "SALES_REP"
+  | "SALES_MANAGER"
+  | "FINANCE_MANAGER"
+  | "ADMIN"
+  | "SUPER_ADMIN";
+
+export interface CreateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string; // Required for creation even if optional in User
+  role: AdminUserRole; // Only admin roles can be created
+}
+
+export interface UpdateUserRequest extends Partial<CreateUserRequest> {
+  id: string;
+}
+
+export interface UserCredentials {
+  email: string;
+  temporaryPassword: string;
+}
+
+export interface UserResponse {
+  user: User;
+  credentials?: UserCredentials;
+}
+
+export interface UsersState {
+  users: User[];
+  loading: boolean;
+  error: string | null;
+  selectedUser: User | null;
+  searchQuery: string;
+  filters: {
+    role?: string;
+    status?: string;
+  };
 }

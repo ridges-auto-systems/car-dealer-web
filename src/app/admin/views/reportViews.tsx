@@ -11,102 +11,22 @@ import DateRangePicker from "../components/ui/DateRangePicker";
 import InventoryReport from "../components/reports/InventoryReport";
 import LeadConversionReport from "../components/reports/LeadConversionReport";
 import SalesReport from "../components/reports/SalesReport";
-<<<<<<< HEAD
 import { useReports } from "@/lib/store/hooks/useReport";
 
 // TypeScript Interfaces (keep your existing ones)
-=======
-
-// TypeScript Interfaces
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
 interface DateRange {
   start: Date;
   end: Date;
 }
-<<<<<<< HEAD
 
 interface ReportsViewProps {
   userRole?: "ADMIN" | "SALES_REP";
   autoRefresh?: boolean;
   refreshInterval?: number;
-=======
-
-interface SalesReportData {
-  totalSales: number;
-  totalRevenue: number;
-  avgSalePrice: number;
-  salesByMonth: Array<{
-    month: string;
-    sales: number;
-    revenue: number;
-  }>;
-  topPerformers: Array<{
-    salesRep: string;
-    sales: number;
-    revenue: number;
-  }>;
-  vehiclesSold: Array<{
-    make: string;
-    model: string;
-    year: number;
-    price: number;
-    saleDate: string;
-    salesRep: string;
-  }>;
-}
-
-interface InventoryReportData {
-  totalVehicles: number;
-  totalValue: number;
-  avgDaysOnLot: number;
-  lowStockAlert: number;
-  vehiclesByCategory: Array<{
-    category: string;
-    count: number;
-    value: number;
-  }>;
-  agingInventory: Array<{
-    vehicleId: string;
-    make: string;
-    model: string;
-    year: number;
-    daysOnLot: number;
-    currentPrice: number;
-  }>;
-}
-
-interface LeadConversionData {
-  totalLeads: number;
-  convertedLeads: number;
-  conversionRate: number;
-  avgConversionTime: number;
-  leadsBySource: Array<{
-    source: string;
-    leads: number;
-    conversions: number;
-    conversionRate: number;
-  }>;
-  conversionFunnel: Array<{
-    stage: string;
-    count: number;
-    percentage: number;
-  }>;
-}
-
-interface ReportsViewProps {
-  userRole?: "ADMIN" | "SALES_REP";
-  salesReportData?: SalesReportData;
-  inventoryReportData?: InventoryReportData;
-  leadConversionData?: LeadConversionData;
-  isLoading?: boolean;
-  onExportReport?: (reportType: string, dateRange: DateRange) => void;
-  onDateRangeChange?: (dateRange: DateRange) => void;
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
 }
 
 const ReportsView: React.FC<ReportsViewProps> = ({
   userRole = "ADMIN",
-<<<<<<< HEAD
   autoRefresh = false,
   refreshInterval = 300000,
 }) => {
@@ -150,23 +70,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Default empty data (fallbacks)
   const defaultSalesData = {
-=======
-  salesReportData,
-  inventoryReportData,
-  leadConversionData,
-  isLoading = false,
-  onExportReport,
-  onDateRangeChange,
-}) => {
-  const [activeReport, setActiveReport] = useState("sales");
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    end: new Date(),
-  });
-
-  // Default empty data
-  const defaultSalesData: SalesReportData = {
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
     totalSales: 0,
     totalRevenue: 0,
     avgSalePrice: 0,
@@ -175,11 +78,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     vehiclesSold: [],
   };
 
-<<<<<<< HEAD
   const defaultInventoryData = {
-=======
-  const defaultInventoryData: InventoryReportData = {
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
     totalVehicles: 0,
     totalValue: 0,
     avgDaysOnLot: 0,
@@ -188,11 +87,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     agingInventory: [],
   };
 
-<<<<<<< HEAD
   const defaultLeadData = {
-=======
-  const defaultLeadData: LeadConversionData = {
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
     totalLeads: 0,
     convertedLeads: 0,
     conversionRate: 0,
@@ -201,7 +96,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     conversionFunnel: [],
   };
 
-<<<<<<< HEAD
   // Handle export
   const handleExport = async () => {
     try {
@@ -221,10 +115,10 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   };
 
   // Error Display Component
-  const ErrorDisplay: React.FC<{ error: string; onRetry?: () => void }> = ({
-    error,
-    onRetry,
-  }) => (
+  const ErrorDisplay: React.FC<{
+    error: string | null;
+    onRetry?: () => void;
+  }> = ({ error, onRetry }) => (
     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
       <div className="flex items-center space-x-2">
         <AlertCircle className="h-5 w-5 text-red-600" />
@@ -244,22 +138,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Loading skeleton
   if (isLoading && !hasAnyData) {
-=======
-  const handleDateRangeChange = (newRange: DateRange) => {
-    setDateRange(newRange);
-    if (onDateRangeChange) {
-      onDateRangeChange(newRange);
-    }
-  };
-
-  const handleExport = () => {
-    if (onExportReport) {
-      onExportReport(activeReport, dateRange);
-    }
-  };
-
-  if (isLoading) {
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -297,7 +175,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <div className="flex items-center gap-3">
             <DateRangePicker
               value={dateRange}
-<<<<<<< HEAD
               onChange={actions.setDateRange}
             />
             <button
@@ -314,13 +191,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
               onClick={handleExport}
               disabled={exporting || !hasAnyData}
               className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-=======
-              onChange={handleDateRangeChange}
-            />
-            <button
-              onClick={handleExport}
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
             >
               <Download className="h-4 w-4" />
               <span>{exporting ? "Exporting..." : "Export"}</span>
@@ -334,7 +204,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             {errors.map((error, index) => (
               <ErrorDisplay
                 key={index}
-                error={error ?? ""}
+                error={error}
                 onRetry={actions.refreshAllData}
               />
             ))}
@@ -394,7 +264,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Report Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-<<<<<<< HEAD
           {/* Sales Report */}
           {activeReport === "sales" && (
             <>
@@ -473,20 +342,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             <div className="mt-4">
               <ErrorDisplay error={exportError} />
             </div>
-=======
-          {activeReport === "sales" && (
-            <SalesReport data={salesReportData || defaultSalesData} />
-          )}
-          {activeReport === "inventory" && (
-            <InventoryReport
-              data={inventoryReportData || defaultInventoryData}
-            />
-          )}
-          {activeReport === "leads" && (
-            <LeadConversionReport
-              data={leadConversionData || defaultLeadData}
-            />
->>>>>>> 1748c8c6ef57f2dad3a9bc02212e457bbb5f80bd
           )}
         </div>
       </div>
