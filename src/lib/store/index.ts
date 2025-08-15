@@ -7,6 +7,7 @@ import authReducer from "./slices/auth.slice";
 import vehicleReducer from "./slices/vehicle.slice";
 import dashboardReducer from "./slices/dashboard.slice";
 import { dashboardApi } from "../services/dashboard.service";
+import salesReducer from "./slices/sales.slice";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     vehicles: vehicleReducer,
+    sales: salesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

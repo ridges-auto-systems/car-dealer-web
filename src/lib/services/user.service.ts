@@ -16,13 +16,16 @@ class UserService {
   }
 
   // Get authorization headers
-  private getAuthHeaders() {
-    const token = this.getToken();
+  private getAuthHeaders = () => {
+    const token = localStorage.getItem("Ridges_auth_token");
+    if (!token) {
+      throw new Error("No authentication token found. Please log in.");
+    }
     return {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
+      Authorization: `Bearer ${token}`,
     };
-  }
+  };
 
   // Get all users
   async getUsers(): Promise<User[]> {

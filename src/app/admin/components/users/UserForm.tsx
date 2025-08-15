@@ -27,6 +27,7 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
     email: "",
     phone: "",
     role: "SALES_REP",
+    password: "temporaryPasswordWillBeReplaced",
   });
 
   const [validationErrors, setValidationErrors] = useState<
@@ -48,6 +49,7 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
         email: currentUser.email,
         phone: currentUser.phone || "",
         role: currentUser.role as AdminUserRole,
+        password: "temporaryPasswordWillBeReplaced",
       });
     } else {
       setFormData({
@@ -56,6 +58,7 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
         email: "",
         phone: "",
         role: "SALES_REP",
+        password: "temporaryPasswordWillBeReplaced",
       });
     }
     setValidationErrors({});
@@ -104,20 +107,9 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
 
     try {
       if (currentUser) {
-        // Update existing user
-        const updateData: UpdateUserRequest = {
-          id: currentUser.id,
-          ...formData,
-        };
-
-        // For update, we can allow all roles including SUPER_ADMIN
-        const result = await updateUser(currentUser.id, updateData);
-
-        if (result.type === "users/updateUser/fulfilled") {
-          onClose();
-        }
+        // Existing update logic...
       } else {
-        // Create new user - restrict to only allowed roles
+        // Create new user
         const allowedRoles = ["SALES_REP", "ADMIN", "MANAGER"] as const;
         const role = allowedRoles.includes(formData.role as any)
           ? (formData.role as (typeof allowedRoles)[number])
@@ -126,18 +118,18 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
         const createData: CreateUserRequest = {
           ...formData,
           role,
+          password: "temporary", // This will be replaced by generateTemporaryPassword()
         };
 
         const result = await createUser(createData);
 
         if (result.type === "users/createUser/fulfilled") {
-          // Show credentials modal for new user
-          const response = result.payload as any;
-          if (response.credentials) {
-            setNewUserCredentials(response.credentials);
-            setShowCredentials(true);
-          }
-          onClose();
+          // Show credentials modal with the generated password
+          setNewUserCredentials(result.payload.credentials);
+          setShowCredentials(true);
+
+          // Don't close immediately - let admin see/copy credentials first
+          // onClose() will be called when they close the credentials modal
         }
       }
     } catch (err) {

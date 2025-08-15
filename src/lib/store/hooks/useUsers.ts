@@ -1,4 +1,5 @@
 // lib/store/hooks/useUsers.ts - Fixed version
+import { get } from "http";
 import { useState, useEffect, useCallback } from "react";
 
 // API Base URL
@@ -25,7 +26,7 @@ interface CreateUserRequest {
   lastName: string;
   phone?: string;
   role: "ADMIN" | "SALES_REP" | "MANAGER";
-  password?: string;
+  password: string;
 }
 
 // Transform API user data
@@ -54,9 +55,12 @@ const transformUser = (apiUser: any): User => {
 // Add this helper function at the top of useUsers.ts
 const getAuthHeaders = () => {
   const token = localStorage.getItem("Ridges_auth_token");
+  if (!token) {
+    throw new Error("No authentication token found. Please log in.");
+  }
   return {
     "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
+    Authorization: `Bearer ${token}`,
   };
 };
 
@@ -194,10 +198,16 @@ export const useUsers = () => {
     setLoading(true);
 
     try {
+      // Generate a secure temporary password
+      const tempPassword = generateTemporaryPassword();
+
       const response = await fetch(`${API_BASE_URL}/users`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          ...userData,
+          password: tempPassword,
+        }),
       });
 
       if (!response.ok) {
@@ -210,10 +220,17 @@ export const useUsers = () => {
       const result = await response.json();
       console.log("✅ useUsers: User created successfully:", result);
 
-      // Reload users to get the updated list
-      await loadUsers();
-
-      return result;
+      // Return both the API result and the credentials we generated
+      return {
+        type: "users/createUser/fulfilled",
+        payload: {
+          ...result,
+          credentials: {
+            email: userData.email,
+            temporaryPassword: tempPassword,
+          },
+        },
+      };
     } catch (error) {
       console.error("❌ useUsers: Create user failed:", error);
       throw error;
@@ -221,6 +238,18 @@ export const useUsers = () => {
       setLoading(false);
     }
   };
+
+  // Helper function to generate a secure temporary password
+  function generateTemporaryPassword() {
+    const length = 12;
+    const charset =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+  }
 
   // Update user function
   const updateUser = async (id: string, updates: Partial<User>) => {
@@ -230,7 +259,7 @@ export const useUsers = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates),
       });
 
@@ -270,6 +299,7 @@ export const useUsers = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -305,7 +335,7 @@ export const useUsers = () => {
         `${API_BASE_URL}/users/${id}/reset-password`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
         }
       );
 

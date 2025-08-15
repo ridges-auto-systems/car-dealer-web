@@ -35,6 +35,12 @@ const UserCredentialsModal: React.FC<UserCredentialsModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    onClose(); // This will close both the modal and the form
+    setCopied(false);
+    setShowPassword(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
@@ -138,7 +144,7 @@ const UserCredentialsModal: React.FC<UserCredentialsModalProps> = ({
                   {copied ? "✓ Copied!" : "Copy All Credentials"}
                 </button>
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Close

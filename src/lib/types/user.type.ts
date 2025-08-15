@@ -36,6 +36,7 @@ export interface CreateUserRequest {
   email: string;
   phone: string;
   role: AdminUserRole;
+  password: string;
 }
 
 export interface UpdateUserRequest extends Partial<CreateUserRequest> {
