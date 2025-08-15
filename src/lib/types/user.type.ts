@@ -2,8 +2,7 @@
 export type UserRole =
   | "CUSTOMER"
   | "SALES_REP"
-  | "SALES_MANAGER"
-  | "FINANCE_MANAGER"
+  | "MANAGER"
   | "ADMIN"
   | "SUPER_ADMIN";
 
@@ -29,19 +28,14 @@ export interface User {
 }
 
 // Admin-only roles for user creation
-export type AdminUserRole =
-  | "SALES_REP"
-  | "SALES_MANAGER"
-  | "FINANCE_MANAGER"
-  | "ADMIN"
-  | "SUPER_ADMIN";
+export type AdminUserRole = "SALES_REP" | "MANAGER" | "ADMIN";
 
 export interface CreateUserRequest {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string; // Required for creation even if optional in User
-  role: AdminUserRole; // Only admin roles can be created
+  phone: string;
+  role: AdminUserRole;
 }
 
 export interface UpdateUserRequest extends Partial<CreateUserRequest> {

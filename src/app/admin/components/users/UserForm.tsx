@@ -7,15 +7,9 @@ import {
   UpdateUserRequest,
   User,
   UserCredentials,
+  AdminUserRole,
 } from "@/lib/types/user.type";
 import UserCredentialsModal from "./UserCredentialsModal";
-
-type AdminUserRole =
-  | "ADMIN"
-  | "SALES_REP"
-  | "SALES_MANAGER"
-  | "FINANCE_MANAGER"
-  | "SUPER_ADMIN";
 
 interface UserFormProps {
   isOpen: boolean;
@@ -27,12 +21,12 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
   const { createUser, updateUser, loading, error, clearError, selectedUser } =
     useUsers();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<CreateUserRequest, "id">>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    role: "SALES_REP" as AdminUserRole,
+    role: "SALES_REP",
   });
 
   const [validationErrors, setValidationErrors] = useState<
@@ -116,14 +110,23 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
           ...formData,
         };
 
-        const result = await updateUser(updateData);
+        // For update, we can allow all roles including SUPER_ADMIN
+        const result = await updateUser(currentUser.id, updateData);
 
         if (result.type === "users/updateUser/fulfilled") {
           onClose();
         }
       } else {
-        // Create new user
-        const createData: CreateUserRequest = formData;
+        // Create new user - restrict to only allowed roles
+        const allowedRoles = ["SALES_REP", "ADMIN", "MANAGER"] as const;
+        const role = allowedRoles.includes(formData.role as any)
+          ? (formData.role as (typeof allowedRoles)[number])
+          : "SALES_REP";
+
+        const createData: CreateUserRequest = {
+          ...formData,
+          role,
+        };
 
         const result = await createUser(createData);
 
@@ -324,10 +327,12 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, user }) => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-600 focus:border-transparent"
                     >
                       <option value="SALES_REP">Sales Representative</option>
-                      <option value="SALES_MANAGER">Sales Manager</option>
-                      <option value="FINANCE_MANAGER">Finance Manager</option>
+                      <option value="MANAGER">Manager</option>
                       <option value="ADMIN">Administrator</option>
-                      <option value="SUPER_ADMIN">Super Administrator</option>
+                      {/* Only allow SUPER_ADMIN for editing existing users, not for creation */}
+                      {currentUser && (
+                        <option value="SUPER_ADMIN">Super Administrator</option>
+                      )}
                     </select>
                   </div>
 
