@@ -194,7 +194,7 @@ export default function VehicleDetailPage() {
               "The vehicle you're looking for doesn't exist or has been removed."}
           </p>
           <button
-            onClick={() => router.push("/inventory")}
+            onClick={() => router.push("/users/inventory")}
             className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
           >
             Back to Inventory
@@ -994,14 +994,16 @@ export default function VehicleDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-2 text-sm">
             <button
-              onClick={() => router.push("/inventory")}
+              onClick={() => router.push("/users/inventory")}
               className="text-gray-500 hover:text-red-600"
             >
               Inventory
             </button>
             <span className="text-gray-300">/</span>
             <button
-              onClick={() => router.push(`/inventory?make=${vehicle.make}`)}
+              onClick={() =>
+                router.push(`/users/inventory?make=${vehicle.make}`)
+              }
               className="text-gray-500 hover:text-red-600"
             >
               {vehicle.make}
@@ -1097,7 +1099,7 @@ export default function VehicleDetailPage() {
                   </div>
                   <button
                     onClick={() =>
-                      router.push(`/inventory/${similarVehicle.id}`)
+                      router.push(`/users/inventory/${similarVehicle.id}`)
                     }
                     className="w-full mt-3 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
                   >
