@@ -187,7 +187,7 @@ export default function CartCheckoutPage() {
               Browse our inventory to find your perfect vehicle
             </p>
             <Link
-              href="/inventory"
+              href="/users/inventory"
               className="inline-flex items-center bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
@@ -220,7 +220,7 @@ export default function CartCheckoutPage() {
               </div>
               {!submissionComplete && (
                 <Link
-                  href="/inventory"
+                  href="/users/inventory"
                   className="text-red-600 hover:text-red-700 font-medium"
                 >
                   Continue Shopping
@@ -598,13 +598,13 @@ export default function CartCheckoutPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  href="/inventory"
+                  href="/users/inventory"
                   className="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold"
                 >
                   Continue Shopping
                 </Link>
                 <Link
-                  href="/contact-us"
+                  href="/users/contact-us"
                   className="border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg hover:bg-red-50 transition-colors font-semibold"
                 >
                   Contact Us

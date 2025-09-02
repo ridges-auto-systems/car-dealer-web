@@ -11,13 +11,13 @@ const navigation = [
   { name: "Home", href: "/" },
   {
     name: "About Us",
-    href: "/about",
+    href: "/users/about",
   },
   {
     name: "Inventory",
-    href: "/inventory",
+    href: "/users/inventory",
   },
-  { name: "Contact Us", href: "/contact-us" },
+  { name: "Contact Us", href: "/users/contact-us" },
 ];
 
 export function Header() {
@@ -128,13 +128,13 @@ export function Header() {
               />
 
               <Link
-                href="/inventory"
+                href="/users/inventory"
                 className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-200 transition-all duration-300 font-medium border border-gray-300 hover:border-gray-400 mr-4"
               >
                 Browse Inventory
               </Link>
               <Link
-                href="/contact-us"
+                href="/users/contact-us"
                 className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
               >
                 Get Quote
@@ -216,14 +216,14 @@ export function Header() {
 
               <div className="mt-8 space-y-4">
                 <Link
-                  href="/inventory"
+                  href="/users/inventory"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium text-center border border-gray-300"
                 >
                   Browse Inventory
                 </Link>
                 <Link
-                  href="/contact-us"
+                  href="/users/contact-us"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-medium text-center shadow-lg"
                 >

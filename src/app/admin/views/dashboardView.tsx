@@ -440,9 +440,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {currentActivities.map((activity) => (
+              {currentActivities.map((activity, index) => (
                 <div
-                  key={activity.id}
+                  key={activity.id || index}
                   className="p-6 hover:bg-gray-50 transition-colors duration-150"
                 >
                   <div className="flex items-start justify-between">

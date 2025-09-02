@@ -19,7 +19,7 @@ export interface SalesDataPoint {
 }
 
 export interface Activity {
-  id: undefined;
+  id: number;
   scheduled: any;
   time: ReactNode;
   type: "lead" | "sale" | "listing";

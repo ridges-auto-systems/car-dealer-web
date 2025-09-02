@@ -9,45 +9,55 @@ import DashboardView from "../views/dashboardView";
 import UsersView from "../views/usersView";
 import ReportsView from "../views/reportViews";
 import SettingsView from "../views/settingsView";
+import AuthProvider, { useAuth } from "@/components/auth/authProvider";
+import SalesDashboard from "../views/salesView";
 
 const AdminLayout = () => {
   const [currentView, setCurrentView] = useState("dashboard");
-  const [userRole, setUserRole] = useState<"ADMIN" | "SALES_REP">("ADMIN");
+  const { role } = useAuth();
 
   const renderCurrentView = () => {
     switch (currentView) {
       case "leads":
         return <LeadsView />;
       case "vehicles":
-        return <VehiclesView />;
+        return role === "ADMIN" || role === "MANAGER" ? <VehiclesView /> : null;
       case "dashboard":
-        return <DashboardView userRole={userRole} />;
+        return role === "SALES_REP" ? <SalesDashboard /> : <DashboardView />;
       case "users":
-        return <UsersView userRole={userRole} />;
+        return role === "ADMIN" ? <UsersView /> : null;
       case "reports":
-        return <ReportsView userRole={userRole} />;
+        return <ReportsView />;
       case "settings":
-        return <SettingsView userRole={userRole} />;
+        return role === "ADMIN" || role === "SALES_REP" ? (
+          <SettingsView userRole={role} />
+        ) : null;
       default:
-        return <DashboardView userRole={userRole} />;
+        return role === "SALES_REP" ? <SalesDashboard /> : <DashboardView />;
     }
   };
 
   return (
-    <ReduxProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Header userRole={userRole} setUserRole={setUserRole} />
-        <div className="flex">
-          <Sidebar
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            userRole={userRole}
-          />
-          <main className="flex-1 p-6">{renderCurrentView()}</main>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="flex">
+        <Sidebar
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          userRole={role}
+        />
+        <main className="flex-1 p-6">{renderCurrentView()}</main>
       </div>
-    </ReduxProvider>
+    </div>
   );
 };
 
-export default AdminLayout;
+const AdminLayoutWrapper = () => (
+  <ReduxProvider>
+    <AuthProvider>
+      <AdminLayout />
+    </AuthProvider>
+  </ReduxProvider>
+);
+
+export default AdminLayoutWrapper;
