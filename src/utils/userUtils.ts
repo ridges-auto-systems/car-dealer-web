@@ -1,3 +1,20 @@
+// Cryptographically secure random number generator
+const getSecureRandomInt = (max: number): number => {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return array[0] % max;
+};
+
+// Fisher-Yates shuffle with cryptographically secure randomness
+const secureshuffle = (array: string[]): string[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = getSecureRandomInt(i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const generateTemporaryPassword = (): string => {
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -7,22 +24,19 @@ export const generateTemporaryPassword = (): string => {
   let password = "";
 
   // Ensure at least one character from each category
-  password += uppercase[Math.floor(Math.random() * uppercase.length)];
-  password += lowercase[Math.floor(Math.random() * lowercase.length)];
-  password += numbers[Math.floor(Math.random() * numbers.length)];
-  password += symbols[Math.floor(Math.random() * symbols.length)];
+  password += uppercase[getSecureRandomInt(uppercase.length)];
+  password += lowercase[getSecureRandomInt(lowercase.length)];
+  password += numbers[getSecureRandomInt(numbers.length)];
+  password += symbols[getSecureRandomInt(symbols.length)];
 
   // Fill remaining length with random characters
   const allChars = uppercase + lowercase + numbers + symbols;
   for (let i = 4; i < 12; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)];
+    password += allChars[getSecureRandomInt(allChars.length)];
   }
 
-  // Shuffle the password
-  return password
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
+  // Shuffle the password using cryptographically secure randomness
+  return secureshuffle(password.split("")).join("");
 };
 
 export const formatUserRole = (role: string): string => {
